@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | Product Tracking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .fade-in.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .delay-1 { transition-delay: 0.2s; }
+        .delay-2 { transition-delay: 0.4s; }
+        .delay-3 { transition-delay: 0.6s; }
+        
+        /* Custom animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-base-100">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white shadow-sm">
+        <div class="navbar max-w-7xl mx-auto px-4">
+            <div class="navbar-start">
+                <div class="dropdown">
+                    <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" />
+                        </svg>
+                    </div>
+                    <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html" class="active text-emerald-600">About</a></li>
+                        <li><a href="registration.html">Registration</a></li>
+                        <li><a href="login.html">Login</a></li>
+                    </ul>
+                </div>
+                <a class="btn btn-ghost text-xl text-emerald-600 font-bold">
+                    <i class="fas fa-qrcode mr-2"></i>PTS
+                </a>
+            </div>
+            <div class="navbar-center hidden lg:flex">
+                <ul class="menu menu-horizontal px-1 gap-2">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html" class="text-emerald-600 font-semibold">About</a></li>
+                    <li><a href="registration.html">Registration</a></li>
+                    <li><a href="login.html">Login</a></li>
+                </ul>
+            </div>
+            <div class="navbar-end">
+                <a href="login.html" class="btn btn-outline btn-sm btn-emerald mr-2">Login</a>
+                <a href="registration.html" class="btn btn-emerald btn-sm">Register</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="hero min-h-[60vh] bg-gradient-to-br from-emerald-50 via-white to-emerald-50">
+        <div class="hero-content text-center max-w-4xl">
+            <div class="space-y-6">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-800 fade-in">About Us</h1>
+                <div class="text-sm breadcrumbs flex justify-center fade-in delay-1">
+                    <ul>
+                        <li><a href="index.html" class="text-emerald-600">Home</a></li>
+                        <li class="text-gray-600">About Us</li>
+                    </ul>
+                </div>
+                <p class="text-xl text-gray-600 fade-in delay-2">
+                    Transforming Supply Chain Management with Trust and Technology
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Content -->
+    <main class="max-w-7xl mx-auto px-4 py-12 space-y-16">
+        <!-- Introduction -->
+        <section class="fade-in">
+            <div class="flex flex-col lg:flex-row gap-8 items-center">
+                <div class="lg:w-1/2">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Transforming Supply Chain Management</h2>
+                    <div class="space-y-4 text-gray-600">
+                        <p>Founded in 2020, Product Tracking System (PTS) emerged from a simple yet powerful vision: to create a world where consumers can trust the products they purchase, and businesses can protect their brands from counterfeit threats.</p>
+                        <p>Our journey began when our founders witnessed firsthand the devastating impact of counterfeit products on both businesses and consumers. We realized that existing solutions were either too complex or insufficient to address the growing challenges in modern supply chains.</p>
+                        <p>Today, PTS stands as a leading provider of comprehensive product tracking and authentication solutions, serving businesses across multiple industries and helping protect millions of products worldwide.</p>
+                    </div>
+                </div>
+                <div class="lg:w-1/2 fade-in delay-1">
+                    <div class="card bg-base-100 shadow-xl">
+                        <figure>
+                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+                                 alt="Our Team" 
+                                 class="rounded-lg w-full h-64 object-cover">
+                        </figure>
+                        <div class="card-body">
+                            <p class="text-sm text-gray-500">Our team working together to create innovative solutions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mission & Vision -->
+        <section class="fade-in delay-1">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="card bg-emerald-50 border border-emerald-100">
+                    <div class="card-body items-center text-center">
+                        <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+                            <i class="fas fa-bullseye text-2xl text-emerald-600"></i>
+                        </div>
+                        <h3 class="card-title text-xl mb-4">Our Mission</h3>
+                        <p class="text-gray-700">To empower businesses with innovative tracking solutions that eliminate counterfeit products, ensure supply chain transparency, and build consumer trust through technology that's both powerful and accessible.</p>
+                    </div>
+                </div>
+                
+                <div class="card bg-emerald-50 border border-emerald-100">
+                    <div class="card-body items-center text-center">
+                        <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+                            <i class="fas fa-eye text-2xl text-emerald-600"></i>
+                        </div>
+                        <h3 class="card-title text-xl mb-4">Our Vision</h3>
+                        <p class="text-gray-700">We envision a future where every product can be authenticated instantly, supply chains are completely transparent, and counterfeit goods are eliminated from global markets.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Values -->
+        <section class="fade-in delay-2">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Our Values</h2>
+                <p class="text-gray-600">The principles that guide everything we do</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="card bg-base-100 shadow-sm border">
+                    <div class="card-body items-center text-center">
+                        <div class="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+                            <i class="fas fa-shield-alt text-xl text-emerald-600"></i>
+                        </div>
+                        <h3 class="card-title text-lg mb-2">Security First</h3>
+                        <p class="text-gray-600 text-sm">We prioritize the security of your data and products above all else, implementing industry-leading protection measures.</p>
+                    </div>
+                </div>
+                
+                <div class="card bg-base-100 shadow-sm border">
+                    <div class="card-body items-center text-center">
+                        <div class="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+                            <i class="fas fa-lightbulb text-xl text-emerald-600"></i>
+                        </div>
+                        <h3 class="card-title text-lg mb-2">Innovation</h3>
+                        <p class="text-gray-600 text-sm">We continuously evolve our technology to stay ahead of emerging threats and market demands.</p>
+                    </div>
+                </div>
+                
+                <div class="card bg-base-100 shadow-sm border">
+                    <div class="card-body items-center text-center">
+                        <div class="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+                            <i class="fas fa-handshake text-xl text-emerald-600"></i>
+                        </div>
+                        <h3 class="card-title text-lg mb-2">Partnership</h3>
+                        <p class="text-gray-600 text-sm">We work collaboratively with our clients, viewing their success as our own and building long-term relationships.</p>
+                    </div>
+                </div>
+                
+                <div class="card bg-base-100 shadow-sm border">
+                    <div class="card-body items-center text-center">
+                        <div class="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+                            <i class="fas fa-award text-xl text-emerald-600"></i>
+                        </div>
+                        <h3 class="card-title text-lg mb-2">Excellence</h3>
+                        <p class="text-gray-600 text-sm">We strive for excellence in every aspect of our service, from product development to customer support.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Team -->
+        <section class="fade-in delay-3">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Meet Our Leadership</h2>
+                <p class="text-gray-600">The passionate individuals driving our mission forward</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="card bg-base-100 shadow-lg">
+                    <figure class="px-6 pt-6">
+                        <div class="avatar">
+                            <div class="w-32 h-32 rounded-full mx-auto bg-emerald-100 flex items-center justify-center">
+                                <img src="./src/images/CEO.jpg" alt="CEO" class=" overflow-hidden">
+                            </div>
+                        </div>
+                    </figure>
+                    <div class="card-body items-center text-center">
+                        <h3 class="card-title text-xl">MD. ASHRAFUL ISLAM SIMANTO</h3>
+                        <div class="badge badge-emerald">CEO & Founder</div>
+                        <p class="text-gray-600 text-sm mt-2">With over 5 years in supply chain management, SIMANTO founded PTS to solve the counterfeit problems he encountered throughout his career.</p>
+                    </div>
+                </div>
+                
+                <div class="card bg-base-100 shadow-lg">
+                    <figure class="px-6 pt-6">
+                        <div class="avatar">
+                            <div class="w-32 h-32 rounded-full mx-auto bg-emerald-100 flex items-center justify-center">
+                               <img src="./src/images/CTO.jpg" alt="">
+                            </div>
+                        </div>
+                    </figure>
+                    <div class="card-body items-center text-center">
+                        <h3 class="card-title text-xl">PITOM GHOSH</h3>
+                        <div class="badge badge-emerald">CTO</div>
+                        <p class="text-gray-600 text-sm mt-2">PITOM leads our technology team with expertise in blockchain, IoT, and security systems that power our tracking solutions.</p>
+                    </div>
+                </div>
+                
+                <div class="card bg-base-100 shadow-lg">
+                    <figure class="px-6 pt-6">
+                        <div class="avatar">
+                            <div class="w-32 h-32 rounded-full mx-auto bg-emerald-100 flex items-center justify-center">
+                               <img src="./src/images/head.jpg" alt="">
+                            </div>
+                        </div>
+                    </figure>
+                    <div class="card-body items-center text-center">
+                        <h3 class="card-title text-xl">FAISAL MAHAMUD</h3>
+                        <div class="badge badge-emerald">Head of Operations</div>
+                        <p class="text-gray-600 text-sm mt-2">FAISAL ensures our solutions deliver maximum value to clients through efficient implementation and ongoing support.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="fade-in" id="contact">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Contact Us</h2>
+                <p class="text-gray-600">Get in touch with our team for any inquiries or support</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <div class="card bg-base-100 shadow-lg">
+                        <div class="card-body">
+                            <h3 class="card-title text-xl mb-6">Send Us a Message</h3>
+                            <form class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text">First Name *</span>
+                                        </label>
+                                        <input type="text" class="input input-bordered" required>
+                                    </div>
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text">Last Name *</span>
+                                        </label>
+                                        <input type="text" class="input input-bordered" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Email Address *</span>
+                                    </label>
+                                    <input type="email" class="input input-bordered" required>
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Phone Number</span>
+                                    </label>
+                                    <input type="tel" class="input input-bordered">
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Subject *</span>
+                                    </label>
+                                    <input type="text" class="input input-bordered" required>
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Message *</span>
+                                    </label>
+                                    <textarea class="textarea textarea-bordered h-32" required></textarea>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-emerald w-full">Send Message</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="card bg-emerald-50 border border-emerald-100">
+                        <div class="card-body">
+                            <h3 class="card-title text-lg mb-4">Contact Information</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-map-marker-alt text-emerald-600 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-medium">Our Office</h4>
+                                        <p class="text-sm text-gray-600">123 Business Avenue, Suite 100<br>Dhaka, Bangladesh</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-phone text-emerald-600 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-medium">Phone Number</h4>
+                                        <p class="text-sm text-gray-600">+880 1234-567890<br>+880 1234-567891</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-envelope text-emerald-600 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-medium">Email Address</h4>
+                                        <p class="text-sm text-gray-600">support@pts.com<br>info@pts.com</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-base-100 border">
+                        <div class="card-body">
+                            <h3 class="card-title text-lg mb-4">Business Hours</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-sm">Monday - Friday</span>
+                                    <span class="text-sm font-medium">9:00 AM - 6:00 PM</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm">Saturday</span>
+                                    <span class="text-sm font-medium">10:00 AM - 4:00 PM</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm">Sunday</span>
+                                    <span class="text-sm font-medium">Closed</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Map -->
+        <section class="fade-in delay-1">
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body p-0">
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3651.862557248678!2d90.39161497504562!3d23.75056088800074!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755b8bd552c2b3b%3A0x4e70f1178561323e!2sBangladesh%20Secretariat!5e0!3m2!1sen!2sbd!4v1699280000000!5m2!1sen!2sbd" 
+                        class="w-full h-64 md:h-96 rounded-lg"
+                        style="border:0;"
+                        allowfullscreen="" 
+                        loading="lazy" 
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="fade-in delay-2">
+            <div class="hero bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-2xl">
+                <div class="hero-content text-center py-12">
+                    <div class="max-w-2xl">
+                        <h2 class="text-3xl font-bold text-white mb-4">Ready to Secure Your Supply Chain?</h2>
+                        <p class="text-emerald-100 mb-8">Join thousands of businesses already protecting their products with our advanced tracking system.</p>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <a href="registration.html" class="btn btn-white text-emerald-600 hover:bg-emerald-50">Start Free Trial</a>
+                            <a href="#contact" class="btn btn-outline btn-white hover:bg-white hover:text-emerald-600">Contact Us</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer bg-gray-800 text-gray-300 p-10 mt-16">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold text-emerald-400 mb-4">🚀 Product Tracking System</h3>
+                    <p class="text-gray-400">
+                        Smart solution to fight against counterfeit, duplicate, 
+                        expired & overpriced products in the supply chain.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="registration.html" class="hover:text-emerald-400">Register</a></li>
+                        <li><a href="login.html" class="hover:text-emerald-400">Login</a></li>
+                        <li><a href="#" class="hover:text-emerald-400">Dashboard</a></li>
+                        <li><a href="#contact" class="hover:text-emerald-400">Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Contact</h4>
+                    <p class="mb-2">Email: <a href="mailto:support@pts.com" class="text-emerald-400">support@pts.com</a></p>
+                    <p class="mb-4">Phone: +880 1234-567890</p>
+                    <div class="flex gap-4">
+                        <a href="#" class="hover:text-emerald-400"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="hover:text-emerald-400"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="hover:text-emerald-400"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="hover:text-emerald-400"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p>© 2025 <span class="text-emerald-400 font-bold">PTS</span> | Crafted with ❤️</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Fade-in animation on scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            const fadeElements = document.querySelectorAll('.fade-in');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            });
+            
+            fadeElements.forEach(element => observer.observe(element));
+            
+            // Contact form submission
+            const contactForm = document.querySelector('form');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    alert('Thank you for your message! We will get back to you soon.');
+                    this.reset();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

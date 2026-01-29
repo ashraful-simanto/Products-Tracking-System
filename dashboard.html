@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Product Tracking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 4px;
+        }
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        /* Hide number input spinners */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <!-- Header/Navbar -->
+    <header class="navbar bg-white shadow-sm sticky top-0 z-50">
+        <div class="flex-1">
+            <a class="btn btn-ghost text-xl text-emerald-600 font-bold">
+                <i class="fas fa-qrcode mr-2"></i>PTS
+            </a>
+            <div class="text-sm ml-4 hidden md:block">
+                <span class="badge badge-outline badge-sm">Dashboard</span>
+            </div>
+        </div>
+        <div class="flex-none gap-4">
+            <!-- QR Verify Button for all users -->
+            <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-sm btn-outline btn-emerald">
+                    <i class="fas fa-qr-code mr-2"></i>Verify QR
+                </div>
+                <div tabindex="0" class="dropdown-content z-[1] menu p-4 shadow bg-base-100 rounded-box w-80 mt-2">
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-lg">QR Code Verification</h3>
+                        <div id="qr-reader" class="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-camera text-4xl text-gray-400"></i>
+                        </div>
+                        <p class="text-sm text-gray-600">Or enter QR code manually:</p>
+                        <input type="text" placeholder="Enter QR code" class="input input-bordered w-full">
+                        <button class="btn btn-emerald w-full">
+                            <i class="fas fa-check mr-2"></i>Verify
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Dropdown -->
+            <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                    <div class="w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <i class="fas fa-user text-emerald-600"></i>
+                    </div>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                    <li><a onclick="openProfileModal()"><i class="fas fa-user-edit"></i> Edit Profile</a></li>
+                    <li><a><i class="fas fa-cog"></i> Settings</a></li>
+                    <li><a><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)]">
+        <!-- Sidebar -->
+        <aside class="w-full lg:w-64 bg-white shadow-sm p-4">
+            <!-- Role Selector -->
+            <div class="mb-6">
+                <h3 class="font-bold text-lg mb-3">Switch Role</h3>
+                <div class="space-y-2">
+                    <button onclick="switchRole('customer')" class="role-btn btn btn-sm w-full justify-start" id="role-customer">
+                        <i class="fas fa-user mr-2"></i>Customer
+                    </button>
+                    <button onclick="switchRole('shopkeeper')" class="role-btn btn btn-sm w-full justify-start" id="role-shopkeeper">
+                        <i class="fas fa-store mr-2"></i>Shopkeeper
+                    </button>
+                    <button onclick="switchRole('distributor')" class="role-btn btn btn-sm w-full justify-start" id="role-distributor">
+                        <i class="fas fa-truck mr-2"></i>Distributor
+                    </button>
+                    <button onclick="switchRole('producer')" class="role-btn btn btn-sm w-full justify-start" id="role-producer">
+                        <i class="fas fa-industry mr-2"></i>Producer
+                    </button>
+                    <button onclick="switchRole('admin')" class="role-btn btn btn-sm w-full justify-start" id="role-admin">
+                        <i class="fas fa-shield-alt mr-2"></i>Admin
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="stats stats-vertical shadow bg-emerald-50 mt-6">
+                <div class="stat">
+                    <div class="stat-title">Current Role</div>
+                    <div class="stat-value text-lg" id="current-role">Customer</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Member Since</div>
+                    <div class="stat-value text-lg">2024</div>
+                </div>
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="mt-6">
+                <h3 class="font-bold text-lg mb-3">Quick Links</h3>
+                <ul class="menu">
+                    <li><a><i class="fas fa-history"></i>History</a></li>
+                    <li><a><i class="fas fa-headset"></i>Support</a></li>
+                    <li><a><i class="fas fa-file-alt"></i>Documents</a></li>
+                    <li><a><i class="fas fa-chart-line"></i>Analytics</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 lg:p-6">
+            <!-- User Information Section -->
+            <div class="card bg-white shadow-sm mb-6 fade-in">
+                <div class="card-body">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="avatar">
+                                <div class="w-16 rounded-full bg-emerald-100 flex items-center justify-center">
+                                    <i class="fas fa-user text-3xl text-emerald-600"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold" id="user-name">John Doe</h2>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="badge badge-emerald" id="user-role-badge">Customer</span>
+                                    <span class="text-gray-600" id="user-mobile">+880 17XXXXXXXX</span>
+                                </div>
+                                <p class="text-gray-600 mt-2" id="user-description">
+                                    Regular customer since 2024. Verified member.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="openProfileModal()" class="btn btn-outline btn-sm">
+                                <i class="fas fa-edit mr-2"></i>Edit Profile
+                            </button>
+                            <button class="btn btn-emerald btn-sm">
+                                <i class="fas fa-id-card mr-2"></i>View ID
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Dashboard Content -->
+            <div id="dashboard-content">
+                <!-- Customer Dashboard (Default) -->
+                <div id="customer-dashboard" class="fade-in">
+                    <h2 class="text-2xl font-bold mb-6">Customer Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-qr-code text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">QR Scan</span>
+                            <span class="text-sm text-gray-600">Scan product QR codes</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-shopping-cart text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Cart</span>
+                            <span class="text-sm text-gray-600">View your shopping cart</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-shopping-bag text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Online Order</span>
+                            <span class="text-sm text-gray-600">Place online orders</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-history text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">History</span>
+                            <span class="text-sm text-gray-600">View order history</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-exclamation-triangle text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Complain</span>
+                            <span class="text-sm text-gray-600">Submit complaints</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-star text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Reviews</span>
+                            <span class="text-sm text-gray-600">Write product reviews</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Shopkeeper Dashboard (Hidden by default) -->
+                <div id="shopkeeper-dashboard" class="hidden fade-in">
+                    <h2 class="text-2xl font-bold mb-6">Shopkeeper Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-boxes text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Current Stock</span>
+                            <span class="text-sm text-gray-600">Manage inventory</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-truck-moving text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">In Transit</span>
+                            <span class="text-sm text-gray-600">Track shipments</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-handshake text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Connected Suppliers</span>
+                            <span class="text-sm text-gray-600">View suppliers</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-shipping-fast text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Delivery Orders</span>
+                            <span class="text-sm text-gray-600">Manage deliveries</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-history text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">History</span>
+                            <span class="text-sm text-gray-600">Transaction history</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-chart-bar text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Analytics</span>
+                            <span class="text-sm text-gray-600">Sales analytics</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Distributor Dashboard (Hidden by default) -->
+                <div id="distributor-dashboard" class="hidden fade-in">
+                    <h2 class="text-2xl font-bold mb-6">Distributor Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-warehouse text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Current Stock</span>
+                            <span class="text-sm text-gray-600">Warehouse inventory</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-exchange-alt text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">In Transit</span>
+                            <span class="text-sm text-gray-600">Incoming/Outgoing</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-industry text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Connected Producers</span>
+                            <span class="text-sm text-gray-600">Producer network</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-store-alt text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Shop Network</span>
+                            <span class="text-sm text-gray-600">Connected shops</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-history text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">History</span>
+                            <span class="text-sm text-gray-600">Distribution history</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-route text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Routes</span>
+                            <span class="text-sm text-gray-600">Delivery routes</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Producer Dashboard (Hidden by default) -->
+                <div id="producer-dashboard" class="hidden fade-in">
+                    <h2 class="text-2xl font-bold mb-6">Producer Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-boxes-stacked text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Current Stock</span>
+                            <span class="text-sm text-gray-600">Production stock</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-truck-ramp-box text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Outgoing Transit</span>
+                            <span class="text-sm text-gray-600">Shipments to distributors</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-network-wired text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Connected Distributors</span>
+                            <span class="text-sm text-gray-600">Distribution network</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3" onclick="openQRGenerator()">
+                            <i class="fas fa-qrcode text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">QR Generator</span>
+                            <span class="text-sm text-gray-600">Generate product QR codes</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-history text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">History</span>
+                            <span class="text-sm text-gray-600">Production history</span>
+                        </button>
+                        <button class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3">
+                            <i class="fas fa-chart-pie text-4xl text-emerald-600"></i>
+                            <span class="text-lg font-medium">Production Stats</span>
+                            <span class="text-sm text-gray-600">Production analytics</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Admin Dashboard (Hidden by default) -->
+                <div id="admin-dashboard" class="hidden fade-in">
+                    <h2 class="text-2xl font-bold mb-6">Admin Dashboard</h2>
+                    
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        <div class="stat bg-white shadow-sm rounded-lg p-4">
+                            <div class="stat-figure text-emerald-600">
+                                <i class="fas fa-store text-2xl"></i>
+                            </div>
+                            <div class="stat-title">Shopkeepers</div>
+                            <div class="stat-value text-2xl">152</div>
+                            <div class="stat-desc">+12 new this month</div>
+                        </div>
+                        <div class="stat bg-white shadow-sm rounded-lg p-4">
+                            <div class="stat-figure text-emerald-600">
+                                <i class="fas fa-truck text-2xl"></i>
+                            </div>
+                            <div class="stat-title">Distributors</div>
+                            <div class="stat-value text-2xl">48</div>
+                            <div class="stat-desc">+3 new this month</div>
+                        </div>
+                        <div class="stat bg-white shadow-sm rounded-lg p-4">
+                            <div class="stat-figure text-emerald-600">
+                                <i class="fas fa-industry text-2xl"></i>
+                            </div>
+                            <div class="stat-title">Producers</div>
+                            <div class="stat-value text-2xl">24</div>
+                            <div class="stat-desc">+2 new this month</div>
+                        </div>
+                        <div class="stat bg-white shadow-sm rounded-lg p-4">
+                            <div class="stat-figure text-emerald-600">
+                                <i class="fas fa-users text-2xl"></i>
+                            </div>
+                            <div class="stat-title">Total Members</div>
+                            <div class="stat-value text-2xl">10,245</div>
+                            <div class="stat-desc">Active users</div>
+                        </div>
+                    </div>
+
+                    <!-- New Members List -->
+                    <div class="card bg-white shadow-sm mb-6">
+                        <div class="card-body">
+                            <h3 class="card-title mb-4">New Members Pending Approval</h3>
+                            <div class="overflow-x-auto">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Date Applied</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Ahmed Hossain</td>
+                                            <td><span class="badge badge-outline">Shopkeeper</span></td>
+                                            <td>2024-01-15</td>
+                                            <td><span class="badge badge-warning">Pending</span></td>
+                                            <td>
+                                                <button class="btn btn-xs btn-success">Approve</button>
+                                                <button class="btn btn-xs btn-error">Reject</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Dhaka Distributors</td>
+                                            <td><span class="badge badge-outline">Distributor</span></td>
+                                            <td>2024-01-14</td>
+                                            <td><span class="badge badge-warning">Pending</span></td>
+                                            <td>
+                                                <button class="btn btn-xs btn-success">Approve</button>
+                                                <button class="btn btn-xs btn-error">Reject</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Complaints Section -->
+                    <div class="card bg-white shadow-sm">
+                        <div class="card-body">
+                            <h3 class="card-title mb-4">Recent Complaints</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-start justify-between p-3 bg-red-50 rounded-lg">
+                                    <div>
+                                        <h4 class="font-medium">Fake Product Complaint</h4>
+                                        <p class="text-sm text-gray-600">Customer ID: CUS-2456</p>
+                                    </div>
+                                    <button class="btn btn-xs btn-error">Investigate</button>
+                                </div>
+                                <div class="flex items-start justify-between p-3 bg-yellow-50 rounded-lg">
+                                    <div>
+                                        <h4 class="font-medium">Late Delivery Issue</h4>
+                                        <p class="text-sm text-gray-600">Shopkeeper ID: SHOP-789</p>
+                                    </div>
+                                    <button class="btn btn-xs btn-warning">Review</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Profile Edit Modal -->
+    <dialog id="profile-modal" class="modal">
+        <div class="modal-box max-w-2xl">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="font-bold text-lg mb-6">Edit Profile Information</h3>
+            
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Full Name</span>
+                        </label>
+                        <input type="text" class="input input-bordered" value="John Doe">
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Email Address</span>
+                        </label>
+                        <input type="email" class="input input-bordered" value="john@example.com">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Mobile Number</span>
+                        </label>
+                        <input type="tel" class="input input-bordered" value="+8801712345678">
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Date of Birth</span>
+                        </label>
+                        <input type="date" class="input input-bordered" value="1990-01-01">
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Address</span>
+                    </label>
+                    <textarea class="textarea textarea-bordered h-24">123 Main Street, Dhaka, Bangladesh</textarea>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Business Name (If applicable)</span>
+                        </label>
+                        <input type="text" class="input input-bordered" placeholder="Your business name">
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Tax ID / Business ID</span>
+                        </label>
+                        <input type="text" class="input input-bordered" placeholder="Tax identification number">
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Additional Information</span>
+                    </label>
+                    <textarea class="textarea textarea-bordered h-32" placeholder="Any additional information you'd like to provide..."></textarea>
+                </div>
+            </div>
+            
+            <div class="modal-action">
+                <button class="btn btn-emerald">Save Changes</button>
+                <form method="dialog">
+                    <button class="btn">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- QR Generator Modal (For Producers) -->
+    <dialog id="qr-generator-modal" class="modal">
+        <div class="modal-box max-w-2xl">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="font-bold text-lg mb-6">Generate Product QR Code</h3>
+            
+            <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Product Name *</span>
+                            </label>
+                            <input type="text" class="input input-bordered" placeholder="Enter product name" id="qr-product-name">
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Product ID *</span>
+                            </label>
+                            <input type="text" class="input input-bordered" placeholder="PROD-XXXXX" id="qr-product-id">
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Batch Number</span>
+                            </label>
+                            <input type="text" class="input input-bordered" placeholder="BATCH-XXXX" id="qr-batch-number">
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Manufacture Date</span>
+                            </label>
+                            <input type="date" class="input input-bordered" id="qr-manufacture-date">
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Expiry Date</span>
+                            </label>
+                            <input type="date" class="input input-bordered" id="qr-expiry-date">
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col items-center justify-center">
+                        <div id="qr-code-container" class="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                            <span class="text-gray-400">QR Preview</span>
+                        </div>
+                        <button onclick="generateQRCode()" class="btn btn-emerald w-full">
+                            <i class="fas fa-qrcode mr-2"></i>Generate QR Code
+                        </button>
+                        <button onclick="downloadQRCode()" class="btn btn-outline mt-2 w-full">
+                            <i class="fas fa-download mr-2"></i>Download QR
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>This QR code will contain product authentication information for tracking throughout the supply chain.</span>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+   <!-- Add this line before </body> in dashboard.html -->
+<script src="dashboard.js"></script>
+</body>
+</html>

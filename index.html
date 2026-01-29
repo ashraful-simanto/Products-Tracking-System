@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Tracking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-base-100">
+    <!-- Header -->
+    <header class="sticky top-0 z-50">
+        <!-- Navigation Bar -->
+        <div class="navbar bg-white shadow-sm">
+            <div class="navbar-start">
+                <div class="dropdown">
+                    <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" />
+                        </svg>
+                    </div>
+                    <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
+                        <li><a class="hover:text-emerald-600 font-semibold" href="./index.html">Home</a></li>
+                        <li><a class="hover:text-emerald-600 font-semibold" href="./about.html">About</a></li>
+                        <li><a class="hover:text-emerald-600 font-semibold" href="./registration.html">Registration</a></li>
+                        <li><a class="hover:text-emerald-600 font-semibold" href="./login.html">Login</a></li>
+                    </ul>
+                </div>
+                <a class="text-2xl font-bold text-emerald-600 ml-4">PTS</a>
+            </div>
+            <div class="navbar-center hidden lg:flex">
+                <ul class="menu menu-horizontal px-1 space-x-2">
+                    <li><a class="font-medium hover:text-emerald-600" href="./index.html">Home</a></li>
+                    <li><a class="font-medium hover:text-emerald-600" href="./about.html" >About</a></li>
+                    <li><a class="font-medium hover:text-emerald-600" href="./registration.html">Registration</a></li>
+                    <li><a class="font-medium hover:text-emerald-600" href="./login.html">Login</a></li>
+                </ul>
+            </div>
+            <div class="navbar-end mr-4">
+                <a class="btn btn-outline border-emerald-500 text-emerald-600 hover:bg-emerald-600 hover:border-emerald-600 hover:text-white font-medium">Quick Scan</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero min-h-[80vh] flex items-center justify-center">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gray-800">
+                    <span class="text-emerald-600">Products</span> Tracking System
+                </h1>
+                <p class="text-lg md:text-xl lg:text-2xl mb-10 max-w-3xl mx-auto text-gray-600 leading-relaxed">
+                    Stop counterfeit products with real-time tracking. Secure your supply chain with our verification platform.
+                </p>
+                <div>
+                    <button class="btn bg-emerald-400 text-white border-emerald-600 hover:bg-emerald-600 hover:border-emerald-700 text-lg px-10 py-4 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"  >
+                    <a href="./login.html">Get Started</a>
+                </button>
+                <button class="btn bg-white text-green-400 border-green-600 hover:bg-emerald-600 hover:border-emerald-700 text-lg px-10 py-4 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"  >
+                    <a href="./about.html">Learn More</a>
+                </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="py-20 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800">How We Protect You</h2>
+                    <p class="text-gray-600 text-lg">Advanced tools for product security</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Feature 1 -->
+                    <div class="card bg-white shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                        <div class="card-body items-center text-center p-8">
+                            <div class="w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center mb-6">
+                                <i class="fas fa-shield-alt text-3xl text-emerald-600"></i>
+                            </div>
+                            <h3 class="card-title text-xl font-bold mb-4 text-gray-800">Counterfeit Detection</h3>
+                            <p class="text-gray-600 leading-relaxed">Instant verification to block fake products from reaching customers.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature 2 -->
+                    <div class="card bg-white shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                        <div class="card-body items-center text-center p-8">
+                            <div class="w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center mb-6">
+                                <i class="fas fa-qrcode text-3xl text-emerald-600"></i>
+                            </div>
+                            <h3 class="card-title text-xl font-bold mb-4 text-gray-800">QR Tracking</h3>
+                            <p class="text-gray-600 leading-relaxed">Scan to verify authenticity and track product journey in real-time.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature 3 -->
+                    <div class="card bg-white shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                        <div class="card-body items-center text-center p-8">
+                            <div class="w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center mb-6">
+                                <i class="fas fa-chart-line text-3xl text-emerald-600"></i>
+                            </div>
+                            <h3 class="card-title text-xl font-bold mb-4 text-gray-800">Smart Analytics</h3>
+                            <p class="text-gray-600 leading-relaxed">Get insights into your supply chain performance and risks.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer bg-gray-800 text-gray-300 py-12">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="mb-6 md:mb-0">
+                    <a class="text-2xl font-bold text-emerald-400">PTS</a>
+                    <p class="text-gray-400 mt-2">Secure product tracking since 2023</p>
+                </div>
+                
+                <nav class="mb-6 md:mb-0">
+                    <div class="flex flex-wrap justify-center gap-6">
+                        <a class="hover:text-emerald-400 transition-colors duration-300">About us</a>
+                        <a class="hover:text-emerald-400 transition-colors duration-300">Contact</a>
+                        <a class="hover:text-emerald-400 transition-colors duration-300">Registration</a>
+                        <a class="hover:text-emerald-400 transition-colors duration-300">Login</a>
+                    </div>
+                </nav>
+                
+                <nav>
+                    <div class="flex justify-center space-x-6">
+                        <a class="hover:text-emerald-400 transition-colors duration-300">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a class="hover:text-emerald-400 transition-colors duration-300">
+                            <i class="fab fa-linkedin text-xl"></i>
+                        </a>
+                        <a class="hover:text-emerald-400 transition-colors duration-300">
+                            <i class="fab fa-facebook text-xl"></i>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p class="text-gray-400">Copyright © <span id="currentYear"></span> - Product Tracking System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        
+    </script>
+</body>
+</html>

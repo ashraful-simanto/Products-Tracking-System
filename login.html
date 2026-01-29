@@ -1,0 +1,150 @@
+<!-- Keep your login.html exactly as it was -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Product Tracking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        
+        .password-toggle {
+            cursor: pointer;
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-emerald-50 to-white flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Back to Home -->
+        <div class="mb-6">
+            <a href="./index.html" class="text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i>
+                Back to Home
+            </a>
+        </div>
+        
+        <!-- Login Card -->
+        <div class="card bg-white shadow-xl border border-emerald-100">
+            <div class="card-body p-8">
+                <!-- Logo and Title -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4">
+                        <i class="fas fa-lock text-2xl text-emerald-600"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-800">Welcome Back</h1>
+                    <p class="text-gray-600 mt-2">Login to your account</p>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm">
+                    <!-- Mobile Field -->
+                    <div class="form-control mb-6">
+                        <label class="label">
+                            <span class="label-text text-gray-700 font-medium">Mobile Number *</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">+880</div>
+                            <input 
+                                type="number" 
+                                id="mobile" 
+                                class="input input-bordered border-emerald-300 w-full pl-16 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
+                                placeholder="1XXXXXXXXXX" 
+                                required 
+                                maxlength="10"
+                            />
+                        </div>
+                        <div class="text-xs text-gray-500 mt-2">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Enter your registered mobile number
+                        </div>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="form-control mb-1">
+                        <label class="label">
+                            <span class="label-text text-gray-700 font-medium">Password *</span>
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                class="input input-bordered border-emerald-300 w-full pr-10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
+                                placeholder="Enter your password" 
+                                required 
+                            />
+                            <span class="password-toggle" onclick="togglePassword()">
+                                <i id="eyeIcon" class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Forgot Password -->
+                    <div class="text-right mb-6">
+                        <a href="#" class="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+                            Forgot Password?
+                        </a>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 w-full">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Login
+                    </button>
+
+                    <!-- Demo Credentials -->
+                    <div class="mt-6 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                        <h3 class="text-sm font-medium text-emerald-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-lightbulb"></i>
+                            Demo Credentials
+                        </h3>
+                        <div class="text-xs text-emerald-700 space-y-1">
+                            <p><span class="font-medium">Mobile:</span> 01700000000</p>
+                            <p><span class="font-medium">Password:</span> demo123</p>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="divider my-8 text-gray-400">OR</div>
+
+                    <!-- Sign Up Link -->
+                    <div class="text-center">
+                        <p class="text-gray-600">
+                            Don't have an account? 
+                            <a href="registration.html" class="text-emerald-600 hover:text-emerald-700 font-medium">
+                                Sign up here
+                            </a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="mt-6 text-center">
+            <div class="flex items-center justify-center gap-2 text-sm text-gray-500">
+                <i class="fas fa-shield-alt text-emerald-500"></i>
+                <span>Your login is secured with 256-bit encryption</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load ONLY login.js -->
+    <script src="login.js"></script>
+</body>
+</html>
