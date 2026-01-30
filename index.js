@@ -77,8 +77,8 @@ function showNotification(message, type = "info") {
               type === "success"
                 ? "check-circle"
                 : type === "error"
-                ? "exclamation-circle"
-                : "info-circle"
+                  ? "exclamation-circle"
+                  : "info-circle"
             } mr-2"></i>
             <span>${message}</span>
             <button class="btn btn-xs btn-circle btn-ghost ml-auto" onclick="this.parentElement.parentElement.remove()">✕</button>
