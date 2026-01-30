@@ -1,62 +1,51 @@
-// dashboard.js - Add this script to dashboard.html
+// dashboard.js - Role-based dashboard control
+
 document.addEventListener("DOMContentLoaded", function () {
-  // Check if user is authenticated
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("authToken");
 
+  // Auth check
   if (!user || !token) {
-    // Redirect to login if not authenticated
     window.location.href = "login.html";
     return;
   }
 
-  // Update UI with user data
+  // Update profile UI
   updateUserInfo(user);
 
-  // Set up role switching
-  setupRoleSwitching(user.role);
+  // Role-based access & landing
+  setupRoleBasedAccess(user.role);
 
-  // Set up logout functionality
+  // Logout
   setupLogout();
 
-  // Initialize QR generator (for producers)
+  // Producer-only feature
   if (user.role === "producer") {
     setupQRGenerator();
   }
 });
 
-// Update user information in the dashboard
+/* ==========================
+   USER INFO
+========================== */
 function updateUserInfo(user) {
-  // Update name
-  const userNameElement = document.getElementById("user-name");
-  if (userNameElement) {
-    userNameElement.textContent = user.name || "User";
+  const userName = document.getElementById("user-name");
+  const userMobile = document.getElementById("user-mobile");
+  const roleBadge = document.getElementById("user-role-badge");
+  const currentRole = document.getElementById("current-role");
+  const description = document.getElementById("user-description");
+
+  if (userName) userName.textContent = user.name || "User";
+  if (userMobile) userMobile.textContent = user.mobile || "+880 XXXXXXXX";
+
+  if (roleBadge) {
+    roleBadge.textContent = capitalize(user.role);
+    roleBadge.className = `badge badge-${getRoleColor(user.role)}`;
   }
 
-  // Update mobile
-  const userMobileElement = document.getElementById("user-mobile");
-  if (userMobileElement) {
-    userMobileElement.textContent = user.mobile || "+880 XXXXXXXX";
-  }
+  if (currentRole) currentRole.textContent = capitalize(user.role);
 
-  // Update role badge
-  const userRoleBadge = document.getElementById("user-role-badge");
-  if (userRoleBadge) {
-    userRoleBadge.textContent =
-      user.role.charAt(0).toUpperCase() + user.role.slice(1);
-    userRoleBadge.className = `badge badge-${getRoleColor(user.role)}`;
-  }
-
-  // Update current role
-  const currentRoleElement = document.getElementById("current-role");
-  if (currentRoleElement) {
-    currentRoleElement.textContent =
-      user.role.charAt(0).toUpperCase() + user.role.slice(1);
-  }
-
-  // Update description based on role
-  const userDescription = document.getElementById("user-description");
-  if (userDescription) {
+  if (description) {
     const descriptions = {
       customer: "Regular customer. Verified member.",
       shopkeeper: "Shop owner. Verified business.",
@@ -64,11 +53,13 @@ function updateUserInfo(user) {
       producer: "Verified producer.",
       admin: "System administrator.",
     };
-    userDescription.textContent = descriptions[user.role] || "Verified member.";
+    description.textContent = descriptions[user.role] || "Verified member.";
   }
 }
 
-// Get color based on role
+/* ==========================
+   ROLE COLORS
+========================== */
 function getRoleColor(role) {
   const colors = {
     customer: "emerald",
@@ -80,120 +71,116 @@ function getRoleColor(role) {
   return colors[role] || "emerald";
 }
 
-// Set up role switching
-function setupRoleSwitching(currentRole) {
-  // Highlight current role button
-  const currentRoleBtn = document.getElementById(`role-${currentRole}`);
-  if (currentRoleBtn) {
-    currentRoleBtn.classList.add("btn-emerald");
-  }
+/* ==========================
+   ROLE-BASED ACCESS CONTROL
+========================== */
+function setupRoleBasedAccess(userRole) {
+  const roleHierarchy = {
+    producer: ["producer", "distributor", "shopkeeper", "customer"],
+    distributor: ["distributor", "shopkeeper", "customer"],
+    shopkeeper: ["shopkeeper", "customer"],
+    customer: ["customer"],
+  };
 
-  // Hide all dashboards except current role
-  const allDashboards = document.querySelectorAll('[id$="-dashboard"]');
-  allDashboards.forEach((dashboard) => {
-    dashboard.classList.add("hidden");
+  const allowedRoles = roleHierarchy[userRole] || ["customer"];
+
+  // Hide all role buttons
+  document.querySelectorAll(".role-btn").forEach((btn) => {
+    btn.classList.add("hidden");
   });
 
-  // Show current role dashboard
-  const currentDashboard = document.getElementById(`${currentRole}-dashboard`);
-  if (currentDashboard) {
-    currentDashboard.classList.remove("hidden");
+  // Show allowed role buttons
+  allowedRoles.forEach((role) => {
+    const btn = document.getElementById(`role-${role}`);
+    if (btn) btn.classList.remove("hidden");
+  });
+
+  // Hide all dashboards
+  document.querySelectorAll('[id$="-dashboard"]').forEach((dash) => {
+    dash.classList.add("hidden");
+  });
+
+  // Show landing dashboard (own role)
+  const landingDashboard = document.getElementById(`${userRole}-dashboard`);
+  if (landingDashboard) landingDashboard.classList.remove("hidden");
+
+  // Highlight own role button
+  const activeBtn = document.getElementById(`role-${userRole}`);
+  if (activeBtn) {
+    activeBtn.classList.add("btn-emerald");
+    activeBtn.classList.remove("btn-outline");
   }
 
-  // Add click handlers to role buttons
+  // Enable switching ONLY within allowed roles
   document.querySelectorAll(".role-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
-      const role = this.id.replace("role-", "");
+      const selectedRole = this.id.replace("role-", "");
 
-      // Remove highlight from all buttons
+      if (!allowedRoles.includes(selectedRole)) return;
+
+      // Button UI reset
       document.querySelectorAll(".role-btn").forEach((b) => {
         b.classList.remove("btn-emerald");
         b.classList.add("btn-outline");
       });
 
-      // Highlight clicked button
-      this.classList.remove("btn-outline");
       this.classList.add("btn-emerald");
+      this.classList.remove("btn-outline");
 
-      // Update current role display
-      const currentRoleElement = document.getElementById("current-role");
-      if (currentRoleElement) {
-        currentRoleElement.textContent =
-          role.charAt(0).toUpperCase() + role.slice(1);
-      }
-
-      // Update role badge
-      const userRoleBadge = document.getElementById("user-role-badge");
-      if (userRoleBadge) {
-        userRoleBadge.textContent =
-          role.charAt(0).toUpperCase() + role.slice(1);
-        userRoleBadge.className = `badge badge-${getRoleColor(role)}`;
-      }
-
-      // Switch dashboard view
-      allDashboards.forEach((dashboard) => {
-        dashboard.classList.add("hidden");
+      // Dashboard switch
+      document.querySelectorAll('[id$="-dashboard"]').forEach((dash) => {
+        dash.classList.add("hidden");
       });
 
-      const targetDashboard = document.getElementById(`${role}-dashboard`);
-      if (targetDashboard) {
-        targetDashboard.classList.remove("hidden");
-        targetDashboard.classList.add("fade-in");
-
-        // Remove animation class after animation completes
-        setTimeout(() => {
-          targetDashboard.classList.remove("fade-in");
-        }, 300);
+      const target = document.getElementById(`${selectedRole}-dashboard`);
+      if (target) {
+        target.classList.remove("hidden");
+        target.classList.add("fade-in");
+        setTimeout(() => target.classList.remove("fade-in"), 300);
       }
+
+      // Update UI role label (DO NOT change stored role)
+      const roleText = capitalize(selectedRole);
+      document.getElementById("current-role").textContent = roleText;
+
+      const badge = document.getElementById("user-role-badge");
+      badge.textContent = roleText;
+      badge.className = `badge badge-${getRoleColor(selectedRole)}`;
     });
   });
 }
 
-// Set up logout
+/* ==========================
+   LOGOUT
+========================== */
 function setupLogout() {
-  const logoutLinks = document.querySelectorAll(
-    'a[href*="logout"], a:contains("Logout")',
-  );
-
-  logoutLinks.forEach((link) => {
-    link.addEventListener("click", function (e) {
+  document.querySelectorAll("[data-logout]").forEach((btn) => {
+    btn.addEventListener("click", function (e) {
       e.preventDefault();
-
-      // Show confirmation dialog
       if (confirm("Are you sure you want to logout?")) {
-        // Clear authentication data
         localStorage.removeItem("user");
         localStorage.removeItem("authToken");
-
-        // Redirect to login page
         window.location.href = "login.html";
       }
     });
   });
 }
 
-// Set up QR Generator (for producers)
+/* ==========================
+   QR GENERATOR (PRODUCER)
+========================== */
 function setupQRGenerator() {
-  // This function will be called when producer clicks QR Generator button
-  console.log("QR Generator setup for producer");
+  console.log("QR Generator enabled for producer");
 }
 
-// Modal functions
 function openProfileModal() {
-  const modal = document.getElementById("profile-modal");
-  if (modal) {
-    modal.showModal();
-  }
+  document.getElementById("profile-modal")?.showModal();
 }
 
 function openQRGenerator() {
-  const modal = document.getElementById("qr-generator-modal");
-  if (modal) {
-    modal.showModal();
-  }
+  document.getElementById("qr-generator-modal")?.showModal();
 }
 
-// QR Code generation
 function generateQRCode() {
   const productName = document.getElementById("qr-product-name").value;
   const productId = document.getElementById("qr-product-id").value;
@@ -203,10 +190,9 @@ function generateQRCode() {
     return;
   }
 
-  // Create data for QR code
   const qrData = {
-    productName: productName,
-    productId: productId,
+    productName,
+    productId,
     batchNumber: document.getElementById("qr-batch-number").value,
     manufactureDate: document.getElementById("qr-manufacture-date").value,
     expiryDate: document.getElementById("qr-expiry-date").value,
@@ -214,14 +200,13 @@ function generateQRCode() {
     timestamp: new Date().toISOString(),
   };
 
-  // Generate QR code
-  const qrContainer = document.getElementById("qr-code-container");
-  qrContainer.innerHTML = "";
+  const container = document.getElementById("qr-code-container");
+  container.innerHTML = "";
 
-  QRCode.toCanvas(qrContainer, JSON.stringify(qrData), function (error) {
-    if (error) {
-      console.error("QR Code generation error:", error);
-      alert("Failed to generate QR code");
+  QRCode.toCanvas(container, JSON.stringify(qrData), (err) => {
+    if (err) {
+      console.error(err);
+      alert("QR generation failed");
     }
   });
 }
@@ -229,14 +214,19 @@ function generateQRCode() {
 function downloadQRCode() {
   const canvas = document.querySelector("#qr-code-container canvas");
   if (!canvas) {
-    alert("Please generate a QR code first");
+    alert("Generate QR first");
     return;
   }
 
   const link = document.createElement("a");
-  link.download = `QR_${
-    document.getElementById("qr-product-id").value || "product"
-  }.png`;
+  link.download = `QR_${document.getElementById("qr-product-id").value}.png`;
   link.href = canvas.toDataURL("image/png");
   link.click();
+}
+
+/* ==========================
+   UTIL
+========================== */
+function capitalize(text) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
