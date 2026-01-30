@@ -1,4 +1,3 @@
-<!-- Keep your login.html exactly as it was -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +15,7 @@
         }
         
         input[type=number] {
-            -moz-appearance: textfield;
+            -moz-appearance: textfield; 
         }
         
         .password-toggle {
@@ -58,20 +57,17 @@
                         <label class="label">
                             <span class="label-text text-gray-700 font-medium">Mobile Number *</span>
                         </label>
-                        <div class="relative">
-                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">+880</div>
-                            <input 
-                                type="number" 
-                                id="mobile" 
-                                class="input input-bordered border-emerald-300 w-full pl-16 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                                placeholder="1XXXXXXXXXX" 
-                                required 
-                                maxlength="10"
-                            />
-                        </div>
+                        <input 
+                            type="number" 
+                            id="mobile" 
+                            class="input input-bordered border-emerald-300 w-full focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
+                            placeholder="017XXXXXXXX" 
+                            required 
+                            maxlength="11"
+                        />
                         <div class="text-xs text-gray-500 mt-2">
                             <i class="fas fa-info-circle mr-1"></i>
-                            Enter your registered mobile number
+                            Enter your registered 11-digit mobile number
                         </div>
                     </div>
 
@@ -144,7 +140,7 @@
         </div>
     </div>
 
-    <!-- Load ONLY login.js -->
+    <!-- Load login.js -->
     <script src="login.js"></script>
 </body>
 </html>

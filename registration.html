@@ -1,450 +1,233 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Product Tracking System</title>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Hide spinners in number inputs */
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-        
-        /* Password toggle icon */
-        .password-toggle {
-            cursor: pointer;
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #666;
-        }
-        
-        /* Custom dropdown styling */
-        .select-custom {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2334d399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 0.5rem center;
-            background-repeat: no-repeat;
-            background-size: 1.5em 1.5em;
-            padding-right: 2.5rem;
-        }
-        
-        /* Green theme color */
-        .theme-color {
-            color: #34d399;
-        }
-        
-        .theme-bg {
-            background-color: #34d399;
-        }
-        
-        .theme-border {
-            border-color: #34d399;
-        }
-        
-        .theme-hover:hover {
-            background-color: #10b981;
-            border-color: #10b981;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register - Product Tracking System</title>
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+    .password-toggle { cursor: pointer; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #666; }
+    .select-custom { appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2334d399' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; }
+    .theme-color { color: #34d399; }
+    .theme-bg { background-color: #34d399; }
+    .theme-border { border-color: #34d399; }
+    .theme-hover:hover { background-color: #10b981; border-color: #10b981; }
+    .text-red-500 { color: #f87171; }
+</style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-emerald-50 to-white flex items-center justify-center p-4">
-    <div class="w-full max-w-lg">
-        <!-- Back to Home -->
-        <div class="mb-6">
-            <a href="./index.html" class="text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-2">
-                <i class="fas fa-arrow-left"></i>
-                Back to Home
-            </a>
-        </div>
-        
-        <!-- Registration Card -->
-        <div class="card bg-white shadow-xl border border-emerald-100">
-            <div class="card-body p-8">
-                <!-- Logo and Title -->
-                <div class="text-center mb-8">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4">
-                        <i class="fas fa-user-plus text-2xl theme-color"></i>
-                    </div>
-                    <h1 class="text-3xl font-bold text-gray-800">Create Account</h1>
-                    <p class="text-gray-600 mt-2">Register for Product Tracking System</p>
-                </div>
+<div class="w-full max-w-lg">
 
-                <!-- Registration Form -->
-                <form id="registrationForm">
-                    <!-- Register As Dropdown -->
-                    <div class="form-control mb-6">
-                        <label class="label">
-                            <span class="label-text text-gray-700 font-medium">Register As *</span>
-                        </label>
-                        <select id="userType" class="select select-bordered border-emerald-300 w-full focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 select-custom" required>
-                            <option value="" disabled selected>Select your role</option>
-                            <option value="customer">Customer</option>
-                            <option value="shopkeeper">Shopkeeper</option>
-                            <option value="distributor">Distributor</option>
-                            <option value="producer">Producer</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                        <div class="text-xs text-gray-500 mt-2">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Select your role in the product tracking system
-                        </div>
-                    </div>
-
-                    <!-- NID Card Number (Conditional) -->
-                    <div class="form-control mb-6" id="nidContainer">
-                        <label class="label">
-                            <span class="label-text text-gray-700 font-medium">
-                                NID Card Number
-                                <span class="text-gray-500 font-normal">(Optional for customers)</span>
-                            </span>
-                        </label>
-                        <div class="relative">
-                            <input 
-                                type="number" 
-                                id="nidNumber" 
-                                class="input input-bordered border-emerald-300 w-full focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                                placeholder="Enter your NID card number" 
-                            />
-                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                <i class="fas fa-id-card theme-color"></i>
-                            </div>
-                        </div>
-                        <div class="text-xs text-gray-500 mt-2">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            National ID card number is optional for customers
-                        </div>
-                    </div>
-
-                    <!-- Mobile Number -->
-                    <div class="form-control mb-6">
-                        <label class="label">
-                            <span class="label-text text-gray-700 font-medium">Mobile Number *</span>
-                        </label>
-                        <div class="relative">
-                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">+880</div>
-                            <input 
-                                type="number" 
-                                id="mobile" 
-                                class="input input-bordered border-emerald-300 w-full pl-16 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                                placeholder="1XXXXXXXXXX" 
-                                required 
-                                maxlength="10"
-                            />
-                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                <i class="fas fa-mobile-alt theme-color"></i>
-                            </div>
-                        </div>
-                        <div class="text-xs text-gray-500 mt-2">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Enter your 11-digit mobile number (without country code)
-                        </div>
-                        <div class="text-xs text-red-500 mt-1 hidden" id="mobileError">
-                            Mobile number must be 11 digits
-                        </div>
-                    </div>
-
-                    <!-- Password -->
-                    <div class="form-control mb-6">
-                        <label class="label">
-                            <span class="label-text text-gray-700 font-medium">Password *</span>
-                        </label>
-                        <div class="relative">
-                            <input 
-                                type="password" 
-                                id="password" 
-                                class="input input-bordered border-emerald-300 w-full pr-10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                                placeholder="Create a strong password" 
-                                required 
-                            />
-                            <span class="password-toggle" onclick="togglePassword('password', 'passwordEyeIcon')">
-                                <i id="passwordEyeIcon" class="fas fa-eye"></i>
-                            </span>
-                        </div>
-                        <div class="text-xs text-gray-500 mt-2">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Password must be at least 8 characters with letters and numbers
-                        </div>
-                        <div class="text-xs text-red-500 mt-1 hidden" id="passwordError">
-                            Password must be at least 8 characters
-                        </div>
-                    </div>
-
-                    <!-- Confirm Password -->
-                    <div class="form-control mb-8">
-                        <label class="label">
-                            <span class="label-text text-gray-700 font-medium">Confirm Password *</span>
-                        </label>
-                        <div class="relative">
-                            <input 
-                                type="password" 
-                                id="confirmPassword" 
-                                class="input input-bordered border-emerald-300 w-full pr-10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                                placeholder="Re-enter your password" 
-                                required 
-                            />
-                            <span class="password-toggle" onclick="togglePassword('confirmPassword', 'confirmPasswordEyeIcon')">
-                                <i id="confirmPasswordEyeIcon" class="fas fa-eye"></i>
-                            </span>
-                        </div>
-                        <div class="text-xs text-red-500 mt-1 hidden" id="confirmPasswordError">
-                            Passwords do not match
-                        </div>
-                    </div>
-
-                    <!-- Terms and Conditions -->
-                    <div class="form-control mb-8">
-                        <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" id="terms" class="checkbox checkbox-sm theme-border" required />
-                            <span class="label-text text-gray-700">
-                                I agree to the 
-                                <a href="#" class="theme-color font-medium hover:underline">Terms and Conditions</a> 
-                                and 
-                                <a href="#" class="theme-color font-medium hover:underline">Privacy Policy</a>
-                            </span>
-                        </label>
-                        <div class="text-xs text-red-500 mt-1 hidden" id="termsError">
-                            You must agree to the terms and conditions
-                        </div>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn theme-bg text-white border-emerald-400 theme-hover w-full py-3 text-lg font-medium">
-                        <i class="fas fa-user-plus mr-2"></i>
-                        Create Account
-                    </button>
-
-                    <!-- Role Information -->
-                    <div class="mt-6 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                        <h3 class="text-sm font-medium text-emerald-800 mb-2 flex items-center gap-2">
-                            <i class="fas fa-info-circle"></i>
-                            Role Information
-                        </h3>
-                        <div class="text-xs text-emerald-700 space-y-2">
-                            <p><span class="font-medium">Customer:</span> Browse and purchase products</p>
-                            <p><span class="font-medium">Shopkeeper:</span> Manage shop and inventory</p>
-                            <p><span class="font-medium">Distributor:</span> Distribute products to shops</p>
-                            <p><span class="font-medium">Producer:</span> Create and manage products</p>
-                            <p><span class="font-medium">Admin:</span> Full system access and management</p>
-                        </div>
-                    </div>
-
-                    <!-- Divider -->
-                    <div class="divider my-8 text-gray-400">OR</div>
-
-                    <!-- Login Link -->
-                    <div class="text-center">
-                        <p class="text-gray-600">
-                            Already have an account? 
-                            <a href="login.html" class="theme-color hover:text-emerald-700 font-medium">
-                                Login here
-                            </a>
-                        </p>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Security Notice -->
-        <div class="mt-6 text-center">
-            <div class="flex items-center justify-center gap-2 text-sm text-gray-500">
-                <i class="fas fa-shield-alt theme-color"></i>
-                <span>Your information is secured with 256-bit encryption</span>
-            </div>
-        </div>
+    <!-- Back to Home -->
+    <div class="mb-6">
+        <a href="./index.html" class="text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-2">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
     </div>
 
-    <script>
-        // Password visibility toggle
-        function togglePassword(passwordFieldId, eyeIconId) {
-            const passwordField = document.getElementById(passwordFieldId);
-            const eyeIcon = document.getElementById(eyeIconId);
-            
-            if (passwordField.type === 'password') {
-                passwordField.type = 'text';
-                eyeIcon.classList.remove('fa-eye');
-                eyeIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordField.type = 'password';
-                eyeIcon.classList.remove('fa-eye-slash');
-                eyeIcon.classList.add('fa-eye');
-            }
+    <!-- Registration Card -->
+    <div class="card bg-white shadow-xl border border-emerald-100">
+        <div class="card-body p-8">
+
+            <!-- Logo & Title -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4">
+                    <i class="fas fa-user-plus text-2xl theme-color"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800">Create Account</h1>
+                <p class="text-gray-600 mt-2">Register for Product Tracking System</p>
+            </div>
+
+            <!-- Registration Form -->
+            <form id="registrationForm">
+
+                <!-- User Role -->
+                <div class="form-control mb-6">
+                    <label class="label"><span class="label-text text-gray-700 font-medium">Register As *</span></label>
+                    <select id="userType" class="select select-bordered border-emerald-300 w-full select-custom" required>
+                        <option value="" disabled selected>Select your role</option>
+                        <option value="customer">Customer</option>
+                        <option value="shopkeeper">Shopkeeper</option>
+                        <option value="distributor">Distributor</option>
+                        <option value="producer">Producer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <!-- NID Number -->
+                <div class="form-control mb-6" id="nidContainer">
+                    <label class="label">
+                        <span class="label-text text-gray-700 font-medium">
+                            NID Card Number <span id="nidNote" class="text-gray-500 font-normal">(Optional for customers)</span>
+                        </span>
+                    </label>
+                    <input type="number" id="nidNumber" class="input input-bordered border-emerald-300 w-full" placeholder="Enter your NID card number" />
+                </div>
+
+                <!-- Mobile Number -->
+                <div class="form-control mb-6">
+                    <label class="label"><span class="label-text text-gray-700 font-medium">Mobile Number *</span></label>
+                    <input type="number" id="mobile" class="input input-bordered border-emerald-300 w-full" placeholder="01XXXXXXXXX" required maxlength="11" />
+                    <div class="text-xs text-red-500 mt-1 hidden" id="mobileError">Mobile number must be 11 digits starting with 01</div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-control mb-6">
+                    <label class="label"><span class="label-text text-gray-700 font-medium">Password *</span></label>
+                    <div class="relative">
+                        <input type="password" id="password" class="input input-bordered border-emerald-300 w-full pr-10" placeholder="Create password" required />
+                        <span class="password-toggle" onclick="togglePassword('password','passwordEye')">
+                            <i id="passwordEye" class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                    <div class="text-xs text-red-500 mt-1 hidden" id="passwordError">Password must be at least 6 characters</div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-control mb-6">
+                    <label class="label"><span class="label-text text-gray-700 font-medium">Confirm Password *</span></label>
+                    <div class="relative">
+                        <input type="password" id="confirmPassword" class="input input-bordered border-emerald-300 w-full pr-10" placeholder="Re-enter password" required />
+                        <span class="password-toggle" onclick="togglePassword('confirmPassword','confirmPasswordEye')">
+                            <i id="confirmPasswordEye" class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                    <div class="text-xs text-red-500 mt-1 hidden" id="confirmPasswordError">Passwords do not match</div>
+                </div>
+
+                <!-- Terms -->
+                <div class="form-control mb-8">
+                    <label class="label cursor-pointer justify-start gap-3">
+                        <input type="checkbox" id="terms" class="checkbox checkbox-sm theme-border" required />
+                        <span class="label-text text-gray-700">I agree to the <a href="#" class="theme-color font-medium hover:underline">Terms</a> and <a href="#" class="theme-color font-medium hover:underline">Privacy Policy</a></span>
+                    </label>
+                    <div class="text-xs text-red-500 mt-1 hidden" id="termsError">You must agree to terms</div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn theme-bg text-white w-full py-3 text-lg font-medium">
+                    <i class="fas fa-user-plus mr-2"></i>Create Account
+                </button>
+
+                <!-- Login Link -->
+                <div class="text-center mt-6">
+                    <p class="text-gray-600">Already have an account? 
+                        <a href="login.html" class="theme-color hover:text-emerald-700 font-medium">Login here</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Password toggle
+    function togglePassword(fieldId, eyeId) {
+        const field = document.getElementById(fieldId);
+        const eye = document.getElementById(eyeId);
+        if(field.type==='password'){ field.type='text'; eye.classList.replace('fa-eye','fa-eye-slash'); }
+        else{ field.type='password'; eye.classList.replace('fa-eye-slash','fa-eye'); }
+    }
+
+    // Show/hide NID based on role
+    document.getElementById('userType').addEventListener('change', function(){
+        const nidContainer = document.getElementById('nidContainer');
+        const nidNote = document.getElementById('nidNote');
+        const role = this.value;
+        if(role==='customer'){
+            nidContainer.classList.remove('hidden');
+            nidNote.textContent = '(Optional for customers)';
+            nidNote.className = 'text-gray-500 font-normal';
+            document.getElementById('nidNumber').required = false;
+        } else if(role==='admin' || role==='producer'){
+            nidContainer.classList.remove('hidden');
+            nidNote.textContent = '(Required)';
+            nidNote.className = 'text-red-500 font-normal';
+            document.getElementById('nidNumber').required = true;
+        } else {
+            nidContainer.classList.remove('hidden');
+            nidNote.textContent = '(Recommended)';
+            nidNote.className = 'text-amber-500 font-normal';
+            document.getElementById('nidNumber').required = false;
         }
-        
-        // Show/hide NID field based on user type
-        document.getElementById('userType').addEventListener('change', function() {
-            const nidContainer = document.getElementById('nidContainer');
-            const userType = this.value;
-            
-            if (userType === 'customer') {
-                nidContainer.classList.remove('hidden');
-                document.querySelector('#nidContainer label .label-text span').textContent = '(Optional for customers)';
-                document.querySelector('#nidContainer label .label-text span').className = 'text-gray-500 font-normal';
-            } else if (userType === 'admin' || userType === 'producer') {
-                nidContainer.classList.remove('hidden');
-                document.querySelector('#nidContainer label .label-text span').textContent = '(Required)';
-                document.querySelector('#nidContainer label .label-text span').className = 'text-red-500 font-normal';
-                document.getElementById('nidNumber').required = true;
-            } else {
-                nidContainer.classList.remove('hidden');
-                document.querySelector('#nidContainer label .label-text span').textContent = '(Recommended)';
-                document.querySelector('#nidContainer label .label-text span').className = 'text-amber-500 font-normal';
-                document.getElementById('nidNumber').required = false;
-            }
-        });
-        
-        // Mobile number validation
-        document.getElementById('mobile').addEventListener('input', function() {
-            const mobileError = document.getElementById('mobileError');
-            const mobileValue = this.value;
-            
-            if (mobileValue.length !== 10) {
-                mobileError.classList.remove('hidden');
-                mobileError.textContent = 'Mobile number must be 10 digits (after +880)';
-            } else {
-                mobileError.classList.add('hidden');
-            }
-        });
-        
-        // Password validation
-        document.getElementById('password').addEventListener('input', function() {
-            const passwordError = document.getElementById('passwordError');
-            const passwordValue = this.value;
-            
-            if (passwordValue.length < 8) {
-                passwordError.classList.remove('hidden');
-                passwordError.textContent = 'Password must be at least 8 characters';
-            } else if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(passwordValue)) {
-                passwordError.classList.remove('hidden');
-                passwordError.textContent = 'Password must contain both letters and numbers';
-            } else {
-                passwordError.classList.add('hidden');
-            }
-            
-            // Also check password match
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const confirmPasswordError = document.getElementById('confirmPasswordError');
-            
-            if (confirmPassword && passwordValue !== confirmPassword) {
-                confirmPasswordError.classList.remove('hidden');
-            } else if (confirmPassword) {
-                confirmPasswordError.classList.add('hidden');
-            }
-        });
-        
-        // Confirm password validation
-        document.getElementById('confirmPassword').addEventListener('input', function() {
-            const confirmPasswordError = document.getElementById('confirmPasswordError');
-            const password = document.getElementById('password').value;
-            const confirmPassword = this.value;
-            
-            if (password !== confirmPassword) {
-                confirmPasswordError.classList.remove('hidden');
-            } else {
-                confirmPasswordError.classList.add('hidden');
-            }
-        });
-        
-       // Form submission
-document.getElementById('registrationForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    // Validate all fields
-    let isValid = true;
-    
-    // Check user type
-    const userType = document.getElementById('userType').value;
-    if (!userType) {
-        isValid = false;
-        alert('Please select your role');
-        return;
+    });
+
+    // Mobile validation
+    document.getElementById('mobile').addEventListener('input', function(){
+        const mobileError = document.getElementById('mobileError');
+        const val = this.value;
+        if(val.length!==11 || !val.startsWith('01')) mobileError.classList.remove('hidden');
+        else mobileError.classList.add('hidden');
+    });
+
+    // Password & Confirm validation
+    const passwordField = document.getElementById('password');
+    const confirmField = document.getElementById('confirmPassword');
+
+    passwordField.addEventListener('input', checkPassword);
+    confirmField.addEventListener('input', checkPassword);
+
+    function checkPassword(){
+        const p = passwordField.value;
+        const c = confirmField.value;
+        document.getElementById('passwordError').classList.toggle('hidden', p.length>=6);
+        document.getElementById('confirmPasswordError').classList.toggle('hidden', c===' ' || p===c);
     }
-    
-    // Check mobile
-    const mobileValue = document.getElementById('mobile').value;
-    if (mobileValue.length !== 10) {
-        document.getElementById('mobileError').classList.remove('hidden');
-        isValid = false;
-    }
-    
-    // Check password
-    const passwordValue = document.getElementById('password').value;
-    if (passwordValue.length < 8 || !/(?=.*[a-zA-Z])(?=.*\d)/.test(passwordValue)) {
-        document.getElementById('passwordError').classList.remove('hidden');
-        isValid = false;
-    }
-    
-    // Check password match
-    const confirmPasswordValue = document.getElementById('confirmPassword').value;
-    if (passwordValue !== confirmPasswordValue) {
-        document.getElementById('confirmPasswordError').classList.remove('hidden');
-        isValid = false;
-    }
-    
-    // Check terms
-    const termsChecked = document.getElementById('terms').checked;
-    if (!termsChecked) {
-        document.getElementById('termsError').classList.remove('hidden');
-        isValid = false;
-    } else {
-        document.getElementById('termsError').classList.add('hidden');
-    }
-    
-    if (isValid) {
-        // Prepare data to send
+
+    // Form submit
+    document.getElementById('registrationForm').addEventListener('submit', async function(e){
+        e.preventDefault();
+
+        let isValid = true;
+        const role = document.getElementById('userType').value;
+        const mobile = document.getElementById('mobile').value;
+        const password = passwordField.value;
+        const confirm = confirmField.value;
+        const terms = document.getElementById('terms').checked;
+
+        if(!role){ alert('Select your role'); isValid=false; }
+        if(mobile.length!==11 || !mobile.startsWith('01')) { isValid=false; document.getElementById('mobileError').classList.remove('hidden'); }
+        if(password.length<6){ isValid=false; document.getElementById('passwordError').classList.remove('hidden'); }
+        if(password!==confirm){ isValid=false; document.getElementById('confirmPasswordError').classList.remove('hidden'); }
+        if(!terms){ isValid=false; document.getElementById('termsError').classList.remove('hidden'); }
+
+        if(!isValid) return;
+
         const formData = {
-            userType: userType,
+            userType: role,
             nidNumber: document.getElementById('nidNumber').value,
-            mobile: mobileValue,
-            password: passwordValue
+            mobile,
+            password
         };
-        
-        // Show loading state
+
         const submitBtn = this.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating Account...';
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Account...';
         submitBtn.disabled = true;
-        
+
         try {
-            // Send POST request to your backend
-            const response = await fetch('http://localhost:3000/api/users', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+            const res = await fetch('http://localhost:3000/api/users', {
+                method:'POST',
+                headers:{ 'Content-Type':'application/json' },
                 body: JSON.stringify(formData)
             });
-            
-            const result = await response.json();
-            
-            if (response.ok) {
-                alert('Registration successful! Redirecting to login page...');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 1500);
-            } else {
-                throw new Error(result.message || 'Registration failed');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert(`Registration failed: ${error.message}`);
-        } finally {
-            // Reset button state
+            const result = await res.json();
+            if(res.ok){
+                alert('Registration successful! Redirecting to login...');
+                setTimeout(()=>window.location.href='login.html',1500);
+            } else { throw new Error(result.message || 'Registration failed'); }
+        } catch(err){
+            alert('Registration failed: '+err.message);
+        } finally{
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
         }
-    }
-});
-    </script>
+    });
+</script>
 </body>
 </html>
