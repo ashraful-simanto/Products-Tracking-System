@@ -11,7 +11,7 @@ const app = express();
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static("."));
 
 /* -------------------- DB CONNECTION -------------------- */
 mongoose
@@ -155,7 +155,7 @@ app.post("/api/auth/login", async (req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     res.json({

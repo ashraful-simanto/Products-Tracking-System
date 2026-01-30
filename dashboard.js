@@ -152,7 +152,7 @@ function setupRoleSwitching(currentRole) {
 // Set up logout
 function setupLogout() {
   const logoutLinks = document.querySelectorAll(
-    'a[href*="logout"], a:contains("Logout")'
+    'a[href*="logout"], a:contains("Logout")',
   );
 
   logoutLinks.forEach((link) => {
