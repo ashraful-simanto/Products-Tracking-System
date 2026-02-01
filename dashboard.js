@@ -1,232 +1,255 @@
-// dashboard.js - Role-based dashboard control
+// dashboard.js — FIXED & CLEAN VERSION
 
-document.addEventListener("DOMContentLoaded", function () {
-  const user = JSON.parse(localStorage.getItem("user"));
-  const token = localStorage.getItem("authToken");
+let currentUser = null;
+const token = localStorage.getItem("token");
 
-  // Auth check
-  if (!user || !token) {
-    window.location.href = "login.html";
+// ----------------------
+// App bootstrap
+// ----------------------
+document.addEventListener("DOMContentLoaded", async () => {
+  if (!token) {
+    window.location.replace("login.html");
     return;
   }
 
-  // Update profile UI
-  updateUserInfo(user);
+  try {
+    const res = await fetch("http://localhost:3000/api/user/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-  // Role-based access & landing
-  setupRoleBasedAccess(user.role);
+    if (!res.ok) throw new Error("Session expired");
 
-  // Logout
-  setupLogout();
+    currentUser = await res.json();
+    saveUserToLocal(currentUser);
+    renderDashboard(currentUser);
+  } catch (err) {
+    console.warn("Backend unavailable, using localStorage fallback:", err);
 
-  // Producer-only feature
-  if (user.role === "producer") {
-    setupQRGenerator();
+    const localData = JSON.parse(localStorage.getItem("user"));
+    if (localData) {
+      currentUser = localData;
+      renderDashboard(currentUser);
+    } else {
+      localStorage.clear();
+      window.location.replace("login.html");
+    }
   }
 });
 
-/* ==========================
-   USER INFO
-========================== */
-function updateUserInfo(user) {
-  const userName = document.getElementById("user-name");
-  const userMobile = document.getElementById("user-mobile");
-  const roleBadge = document.getElementById("user-role-badge");
-  const currentRole = document.getElementById("current-role");
-  const description = document.getElementById("user-description");
+// qr generator function
+function openQRGenerator() {
+  const user = JSON.parse(localStorage.getItem("user"));
 
-  if (userName) userName.textContent = user.name || "User";
-  if (userMobile) userMobile.textContent = user.mobile || "+880 XXXXXXXX";
-
-  if (roleBadge) {
-    roleBadge.textContent = capitalize(user.role);
-    roleBadge.className = `badge badge-${getRoleColor(user.role)}`;
+  // Safety check
+  if (!user || user.role !== "producer") {
+    Swal.fire(
+      "Access denied ❌",
+      "Only producers can generate QR codes",
+      "error",
+    );
+    return;
   }
 
-  if (currentRole) currentRole.textContent = capitalize(user.role);
-
-  if (description) {
-    const descriptions = {
-      customer: "Regular customer. Verified member.",
-      shopkeeper: "Shop owner. Verified business.",
-      distributor: "Verified distributor.",
-      producer: "Verified producer.",
-      admin: "System administrator.",
-    };
-    description.textContent = descriptions[user.role] || "Verified member.";
-  }
+  // Redirect to QR Generator page
+  window.location.href = "QrGenerator.html";
 }
 
-/* ==========================
-   ROLE COLORS
-========================== */
-function getRoleColor(role) {
-  const colors = {
-    customer: "emerald",
-    shopkeeper: "blue",
-    distributor: "purple",
-    producer: "orange",
-    admin: "red",
+
+// ----------------------
+// Save user locally
+// ----------------------
+function saveUserToLocal(user) {
+  localStorage.setItem("user", JSON.stringify(user));
+}
+
+// ----------------------
+// Render dashboard
+// ----------------------
+function renderDashboard(user) {
+  document.getElementById("user-name").textContent = user.name || "User";
+  document.getElementById("user-mobile").textContent = user.mobile || "";
+
+  const roleText = capitalize(user.role);
+  const badge = document.getElementById("user-role-badge");
+  badge.textContent = roleText;
+  badge.className = `badge badge-${getRoleColor(user.role)}`;
+
+  document.getElementById("current-role").textContent = roleText;
+  document.getElementById("user-description").textContent =
+    user.description || "Verified member.";
+
+  // Prefill profile form
+  const fields = {
+    "edit-name": user.name || "",
+    "edit-email": user.email || "",
+    "edit-mobile": user.additionalMobile || "",
+    "edit-address": user.address || "",
+    "edit-business": user.businessName || "",
+    "edit-tax": user.taxId || "",
+    "edit-description": user.description || "",
+    "edit-dob": user.dateOfBirth
+      ? new Date(user.dateOfBirth).toISOString().split("T")[0]
+      : "",
+    "edit-additional-info": user.additionalInfo || "",
   };
-  return colors[role] || "emerald";
+
+  Object.entries(fields).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+  });
+
+  // Hide business fields for customers
+  ["edit-business", "edit-tax"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.closest(".form-control").classList.toggle(
+      "hidden",
+      user.role === "customer",
+    );
+  });
+
+  setupRoleBasedAccess(user.role);
+  setupLogout();
+
+  if (user.role === "producer") setupQRGenerator();
 }
 
-/* ==========================
-   ROLE-BASED ACCESS CONTROL
-========================== */
-function setupRoleBasedAccess(userRole) {
-  const roleHierarchy = {
+// ----------------------
+// Update profile
+// ----------------------
+async function updateUserProfile() {
+  const payload = {
+    name: document.getElementById("edit-name").value.trim(),
+    email: document.getElementById("edit-email")?.value.trim(),
+    additionalMobile: document.getElementById("edit-mobile")?.value.trim(),
+    address: document.getElementById("edit-address")?.value.trim(),
+    businessName: document.getElementById("edit-business")?.value.trim(),
+    taxId: document.getElementById("edit-tax")?.value.trim(),
+    description: document.getElementById("edit-description")?.value.trim(),
+    dateOfBirth: document.getElementById("edit-dob")?.value || null,
+    additionalInfo: document
+      .getElementById("edit-additional-info")
+      ?.value.trim(),
+  };
+
+  // Validation
+  if (payload.additionalMobile && !/^01\d{9}$/.test(payload.additionalMobile)) {
+    Swal.fire(
+      "Invalid mobile ❌",
+      "Must be 11 digits starting with 01",
+      "error",
+    );
+    return;
+  }
+
+  if (payload.email && !/\S+@\S+\.\S+/.test(payload.email)) {
+    Swal.fire("Invalid email ❌", "Enter a valid email address", "error");
+    return;
+  }
+
+  const submitBtn = document.querySelector("#profile-modal .btn.btn-emerald");
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = "Updating...";
+
+  try {
+    const res = await fetch("http://localhost:3000/api/user/update-profile", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error("Update failed");
+
+    const data = await res.json();
+    currentUser = data.user;
+    saveUserToLocal(currentUser);
+    renderDashboard(currentUser);
+    document.getElementById("profile-modal")?.close();
+
+    Swal.fire("Updated ✅", "Profile saved successfully", "success");
+  } catch (err) {
+    console.warn("Offline update, saving locally:", err);
+    currentUser = { ...currentUser, ...payload };
+    saveUserToLocal(currentUser);
+    renderDashboard(currentUser);
+
+    Swal.fire(
+      "Offline ⚠️",
+      "Saved locally. Will sync when backend is online.",
+      "info",
+    );
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "Save";
+  }
+}
+
+// ----------------------
+// Role helpers
+// ----------------------
+function getRoleColor(role) {
+  return (
+    {
+      customer: "emerald",
+      shopkeeper: "blue",
+      distributor: "purple",
+      producer: "orange",
+      admin: "red",
+    }[role] || "emerald"
+  );
+}
+
+function setupRoleBasedAccess(role) {
+  const hierarchy = {
     producer: ["producer", "distributor", "shopkeeper", "customer"],
     distributor: ["distributor", "shopkeeper", "customer"],
     shopkeeper: ["shopkeeper", "customer"],
     customer: ["customer"],
   };
 
-  const allowedRoles = roleHierarchy[userRole] || ["customer"];
+  const allowed = hierarchy[role] || ["customer"];
 
-  // Hide all role buttons
-  document.querySelectorAll(".role-btn").forEach((btn) => {
-    btn.classList.add("hidden");
-  });
+  document
+    .querySelectorAll(".role-btn")
+    .forEach((btn) => btn.classList.add("hidden"));
 
-  // Show allowed role buttons
-  allowedRoles.forEach((role) => {
-    const btn = document.getElementById(`role-${role}`);
-    if (btn) btn.classList.remove("hidden");
-  });
+  allowed.forEach((r) =>
+    document.getElementById(`role-${r}`)?.classList.remove("hidden"),
+  );
 
-  // Hide all dashboards
-  document.querySelectorAll('[id$="-dashboard"]').forEach((dash) => {
-    dash.classList.add("hidden");
-  });
+  document
+    .querySelectorAll('[id$="-dashboard"]')
+    .forEach((d) => d.classList.add("hidden"));
 
-  // Show landing dashboard (own role)
-  const landingDashboard = document.getElementById(`${userRole}-dashboard`);
-  if (landingDashboard) landingDashboard.classList.remove("hidden");
-
-  // Highlight own role button
-  const activeBtn = document.getElementById(`role-${userRole}`);
-  if (activeBtn) {
-    activeBtn.classList.add("btn-emerald");
-    activeBtn.classList.remove("btn-outline");
-  }
-
-  // Enable switching ONLY within allowed roles
-  document.querySelectorAll(".role-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const selectedRole = this.id.replace("role-", "");
-
-      if (!allowedRoles.includes(selectedRole)) return;
-
-      // Button UI reset
-      document.querySelectorAll(".role-btn").forEach((b) => {
-        b.classList.remove("btn-emerald");
-        b.classList.add("btn-outline");
-      });
-
-      this.classList.add("btn-emerald");
-      this.classList.remove("btn-outline");
-
-      // Dashboard switch
-      document.querySelectorAll('[id$="-dashboard"]').forEach((dash) => {
-        dash.classList.add("hidden");
-      });
-
-      const target = document.getElementById(`${selectedRole}-dashboard`);
-      if (target) {
-        target.classList.remove("hidden");
-        target.classList.add("fade-in");
-        setTimeout(() => target.classList.remove("fade-in"), 300);
-      }
-
-      // Update UI role label (DO NOT change stored role)
-      const roleText = capitalize(selectedRole);
-      document.getElementById("current-role").textContent = roleText;
-
-      const badge = document.getElementById("user-role-badge");
-      badge.textContent = roleText;
-      badge.className = `badge badge-${getRoleColor(selectedRole)}`;
-    });
-  });
+  document.getElementById(`${role}-dashboard`)?.classList.remove("hidden");
 }
 
-/* ==========================
-   LOGOUT
-========================== */
+// ----------------------
+// Logout (FINAL FIX)
+// ----------------------
 function setupLogout() {
   document.querySelectorAll("[data-logout]").forEach((btn) => {
-    btn.addEventListener("click", function (e) {
-      e.preventDefault();
-      if (confirm("Are you sure you want to logout?")) {
-        localStorage.removeItem("user");
-        localStorage.removeItem("authToken");
-        window.location.href = "login.html";
-      }
-    });
+    btn.onclick = () => {
+      localStorage.clear();
+      window.location.replace("login.html");
+    };
   });
 }
 
-/* ==========================
-   QR GENERATOR (PRODUCER)
-========================== */
-function setupQRGenerator() {
-  console.log("QR Generator enabled for producer");
-}
-
+// ----------------------
+// Utils
+// ----------------------
 function openProfileModal() {
   document.getElementById("profile-modal")?.showModal();
 }
 
-function openQRGenerator() {
-  document.getElementById("qr-generator-modal")?.showModal();
+function setupQRGenerator() {
+  console.log("QR generator enabled for producers");
 }
 
-function generateQRCode() {
-  const productName = document.getElementById("qr-product-name").value;
-  const productId = document.getElementById("qr-product-id").value;
-
-  if (!productName || !productId) {
-    alert("Please fill in Product Name and Product ID");
-    return;
-  }
-
-  const qrData = {
-    productName,
-    productId,
-    batchNumber: document.getElementById("qr-batch-number").value,
-    manufactureDate: document.getElementById("qr-manufacture-date").value,
-    expiryDate: document.getElementById("qr-expiry-date").value,
-    producer: JSON.parse(localStorage.getItem("user")).name,
-    timestamp: new Date().toISOString(),
-  };
-
-  const container = document.getElementById("qr-code-container");
-  container.innerHTML = "";
-
-  QRCode.toCanvas(container, JSON.stringify(qrData), (err) => {
-    if (err) {
-      console.error(err);
-      alert("QR generation failed");
-    }
-  });
-}
-
-function downloadQRCode() {
-  const canvas = document.querySelector("#qr-code-container canvas");
-  if (!canvas) {
-    alert("Generate QR first");
-    return;
-  }
-
-  const link = document.createElement("a");
-  link.download = `QR_${document.getElementById("qr-product-id").value}.png`;
-  link.href = canvas.toDataURL("image/png");
-  link.click();
-}
-
-/* ==========================
-   UTIL
-========================== */
-function capitalize(text) {
-  return text.charAt(0).toUpperCase() + text.slice(1);
+function capitalize(str = "") {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }

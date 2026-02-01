@@ -9,6 +9,7 @@
       rel="stylesheet"
       type="text/css"
     />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link
       rel="stylesheet"
@@ -248,9 +249,10 @@
                 >
                   <i class="fas fa-edit mr-2"></i>Edit Profile
                 </button>
-                <button class="btn btn-emerald btn-sm">
-                  <i class="fas fa-id-card mr-2"></i>View ID
-                </button>
+                <button class="btn btn-emerald btn-sm" data-logout>
+  <i class="fas fa-sign-out-alt mr-2"></i>Log out
+</button>
+
               </div>
             </div>
           </div>
@@ -592,216 +594,81 @@
       </main>
     </div>
 
-    <!-- Profile Edit Modal -->
-    <dialog id="profile-modal" class="modal">
-      <div class="modal-box max-w-2xl">
-        <form method="dialog">
-          <button
-            class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-          >
-            ✕
-          </button>
-        </form>
-        <h3 class="font-bold text-lg mb-6">Edit Profile Information</h3>
+ <!-- Profile Edit Modal -->
+<dialog id="profile-modal" class="modal">
+  <div class="modal-box max-w-2xl">
+    <form method="dialog">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+    </form>
+    <h3 class="font-bold text-lg mb-6">Edit Profile Information</h3>
 
-        <div class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Full Name</span>
-              </label>
-              <input
-                type="text"
-                class="input input-bordered"
-                value="John Doe"
-              />
-            </div>
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Email Address</span>
-              </label>
-              <input
-                type="email"
-                class="input input-bordered"
-                value="john@example.com"
-              />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Mobile Number</span>
-              </label>
-              <input
-                type="tel"
-                class="input input-bordered"
-                value="+8801712345678"
-              />
-            </div>
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Date of Birth</span>
-              </label>
-              <input
-                type="date"
-                class="input input-bordered"
-                value="1990-01-01"
-              />
-            </div>
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Address</span>
-            </label>
-            <textarea class="textarea textarea-bordered h-24">
-123 Main Street, Dhaka, Bangladesh</textarea
-            >
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Business Name (If applicable)</span>
-              </label>
-              <input
-                type="text"
-                class="input input-bordered"
-                placeholder="Your business name"
-              />
-            </div>
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text">Tax ID / Business ID</span>
-              </label>
-              <input
-                type="text"
-                class="input input-bordered"
-                placeholder="Tax identification number"
-              />
-            </div>
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Additional Information</span>
-            </label>
-            <textarea
-              class="textarea textarea-bordered h-32"
-              placeholder="Any additional information you'd like to provide..."
-            ></textarea>
-          </div>
+    <div class="space-y-4">
+      <!-- Row 1: Name & Email -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="form-control">
+          <label class="label"><span class="label-text">Full Name</span></label>
+          <input type="text" class="input input-bordered" id="edit-name" />
         </div>
-
-        <div class="modal-action">
-          <button class="btn btn-emerald">Save Changes</button>
-          <form method="dialog">
-            <button class="btn">Cancel</button>
-          </form>
+        <div class="form-control">
+          <label class="label"><span class="label-text">Email Address</span></label>
+          <input type="email" class="input input-bordered" id="edit-email" />
         </div>
       </div>
-    </dialog>
 
-    <!-- QR Generator Modal (For Producers) -->
-    <dialog id="qr-generator-modal" class="modal">
-      <div class="modal-box max-w-2xl">
-        <form method="dialog">
-          <button
-            class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-          >
-            ✕
-          </button>
-        </form>
-        <h3 class="font-bold text-lg mb-6">Generate Product QR Code</h3>
-
-        <div class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-4">
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Product Name *</span>
-                </label>
-                <input
-                  type="text"
-                  class="input input-bordered"
-                  placeholder="Enter product name"
-                  id="qr-product-name"
-                />
-              </div>
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Product ID *</span>
-                </label>
-                <input
-                  type="text"
-                  class="input input-bordered"
-                  placeholder="PROD-XXXXX"
-                  id="qr-product-id"
-                />
-              </div>
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Batch Number</span>
-                </label>
-                <input
-                  type="text"
-                  class="input input-bordered"
-                  placeholder="BATCH-XXXX"
-                  id="qr-batch-number"
-                />
-              </div>
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Manufacture Date</span>
-                </label>
-                <input
-                  type="date"
-                  class="input input-bordered"
-                  id="qr-manufacture-date"
-                />
-              </div>
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Expiry Date</span>
-                </label>
-                <input
-                  type="date"
-                  class="input input-bordered"
-                  id="qr-expiry-date"
-                />
-              </div>
-            </div>
-
-            <div class="flex flex-col items-center justify-center">
-              <div
-                id="qr-code-container"
-                class="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-4"
-              >
-                <span class="text-gray-400">QR Preview</span>
-              </div>
-              <button onclick="generateQRCode()" class="btn btn-emerald w-full">
-                <i class="fas fa-qrcode mr-2"></i>Generate QR Code
-              </button>
-              <button
-                onclick="downloadQRCode()"
-                class="btn btn-outline mt-2 w-full"
-              >
-                <i class="fas fa-download mr-2"></i>Download QR
-              </button>
-            </div>
-          </div>
-
-          <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i>
-            <span
-              >This QR code will contain product authentication information for
-              tracking throughout the supply chain.</span
-            >
-          </div>
+      <!-- Row 2: Mobile & DOB -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="form-control">
+          <label class="label"><span class="label-text">Additional Mobile</span></label>
+          <input type="tel" class="input input-bordered" id="edit-mobile" placeholder="01XXXXXXXXX"/>
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text">Date of Birth</span></label>
+          <input type="date" class="input input-bordered" id="edit-dob" />
         </div>
       </div>
-    </dialog>
+
+      <!-- Row 3: Address -->
+      <div class="form-control">
+        <label class="label"><span class="label-text">Address</span></label>
+        <input type="text" class="input input-bordered" id="edit-address" />
+      </div>
+
+      <!-- Row 4: Business & Tax (Hidden for Customer) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="form-control">
+          <label class="label"><span class="label-text">Business Name</span></label>
+          <input type="text" class="input input-bordered" id="edit-business" />
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text">Tax ID</span></label>
+          <input type="text" class="input input-bordered" id="edit-tax" />
+        </div>
+      </div>
+
+      <!-- Row 5: Description -->
+      <div class="form-control">
+        <label class="label"><span class="label-text">Description</span></label>
+        <input type="text" class="input input-bordered" id="edit-description" />
+      </div>
+
+      <!-- Row 6: Additional Info -->
+      <div class="form-control">
+        <label class="label"><span class="label-text">Additional Information</span></label>
+        <textarea class="textarea textarea-bordered h-32" id="edit-additional-info" placeholder="Any additional info..."></textarea>
+      </div>
+    </div>
+
+    <div class="modal-action">
+      <button type="button" class="btn btn-emerald" onclick="updateUserProfile()">
+        <i class="fas fa-save mr-2"></i>Save Changes
+      </button>
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
 
     <!-- Add this line before </body> in dashboard.html -->
     <script src="dashboard.js"></script>

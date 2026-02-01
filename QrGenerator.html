@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product QR Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+    .card {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      background: #10b981;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 6px;
+    }
+    button:hover {
+      background: #059669;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .grid-1 {
+      grid-column: span 2;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+    <h2>📦 Product QR Code Generator</h2>
+
+    <input id="productName" placeholder="Product Name" />
+
+    <div class="grid">
+      <input id="producedDate" type="date" />
+      <input id="expiryDate" type="date" />
+    </div>
+
+    <div class="grid">
+      <input id="quantity" type="number" placeholder="Quantity" />
+      <input id="price" type="number" placeholder="Price" />
+    </div>
+
+    <input id="factoryAddress" placeholder="Factory Address" />
+
+    <input id="owner" placeholder="Producer Business ID" disabled />
+
+    <textarea
+      id="description"
+      rows="3"
+      placeholder="Product Description"
+    ></textarea>
+
+    <button onclick="generateQR()">Generate QR Code</button>
+  </div>
+
+  <script>
+    // ----------------------
+    // Auto-fill producer info
+    // ----------------------
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!user || user.role !== "producer") {
+      alert("Unauthorized access");
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("owner").value =
+      user.businessName || user._id;
+
+    // ----------------------
+    // Generate QR using ONLINE platform
+    // ----------------------
+    function generateQR() {
+      const data = {
+        productName: document.getElementById("productName").value.trim(),
+        producedDate: document.getElementById("producedDate").value,
+        expiryDate: document.getElementById("expiryDate").value,
+        quantity: document.getElementById("quantity").value,
+        price: document.getElementById("price").value,
+        factoryAddress: document.getElementById("factoryAddress").value.trim(),
+        owner: document.getElementById("owner").value,
+        description: document.getElementById("description").value.trim(),
+        createdAt: new Date().toISOString()
+      };
+
+      // Validation
+      if (
+        !data.productName ||
+        !data.producedDate ||
+        !data.expiryDate ||
+        !data.quantity ||
+        !data.price
+      ) {
+        alert("Please fill all required fields");
+        return;
+      }
+
+      // Encode data for URL
+      const encodedData = encodeURIComponent(JSON.stringify(data));
+
+      // Online QR generator (reliable & free)
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodedData}`;
+
+      // Redirect to QR page
+      window.open(qrUrl, "_blank");
+    }
+  </script>
+
+</body>
+</html>

@@ -1,58 +1,26 @@
-// login.js - Login with mobile and password (Bangladeshi 11-digit numbers)
-const API_BASE_URL = "http://localhost:3000/api"; // Update if backend URL changes
+// login.js - Login with mobile/password (Bangladesh 11-digit numbers)
+const API_BASE_URL = "http://localhost:3000/api";
 
+// ----------------------
+// DOMContentLoaded
+// ----------------------
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Login page loaded");
-
   checkIfAlreadyLoggedIn();
   initializeLoginForm();
 });
 
 // ----------------------
-// Check if user is already logged in
+// Check if already logged in
 // ----------------------
 function checkIfAlreadyLoggedIn() {
   const user = localStorage.getItem("user");
-  const token = localStorage.getItem("authToken");
+  const token = localStorage.getItem("token"); // consistent with dashboard.js
 
-  if (user && token) addLogoutOption();
-}
-
-// ----------------------
-// Add logout option for already logged-in users
-// ----------------------
-function addLogoutOption() {
-  const loginCard = document.querySelector(".card-body");
-  if (!loginCard) return;
-
-  const logoutDiv = document.createElement("div");
-  logoutDiv.className =
-    "mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200";
-  logoutDiv.innerHTML = `
-    <div class="flex items-start">
-      <i class="fas fa-info-circle text-yellow-600 mt-1 mr-2"></i>
-      <div>
-        <p class="text-sm font-medium text-yellow-800">You are already logged in</p>
-        <p class="text-xs text-yellow-700 mt-1">Click below to logout and login with different credentials</p>
-        <button onclick="logout()" class="btn btn-sm btn-warning mt-2 w-full">
-          <i class="fas fa-sign-out-alt mr-2"></i>Logout & Login as Different User
-        </button>
-      </div>
-    </div>
-  `;
-
-  const form = document.getElementById("loginForm");
-  if (form) form.parentNode.insertBefore(logoutDiv, form.nextSibling);
-}
-
-// ----------------------
-// Logout function
-// ----------------------
-function logout() {
-  localStorage.removeItem("user");
-  localStorage.removeItem("authToken");
-  showNotification("Logged out successfully", "success");
-  setTimeout(() => location.reload(), 1000);
+  if (user && token) {
+    showNotification("You are already logged in. Redirecting...", "info");
+    setTimeout(() => (window.location.href = "dashboard.html"), 1000);
+  }
 }
 
 // ----------------------
@@ -88,7 +56,6 @@ function togglePassword() {
 // Show notification
 // ----------------------
 function showNotification(message, type = "info") {
-  // Remove existing
   document.querySelectorAll(".login-notification").forEach((n) => n.remove());
 
   const notification = document.createElement("div");
@@ -125,16 +92,15 @@ function setLoading(isLoading) {
 }
 
 // ----------------------
-// Validate Bangladeshi mobile number
+// Validate mobile number
 // ----------------------
 function validateMobile(mobile) {
-  if (!mobile) return false;
-  const cleaned = mobile.replace(/\D/g, ""); // remove non-digits
+  const cleaned = mobile.replace(/\D/g, "");
   return cleaned.length === 11 && cleaned.startsWith("01");
 }
 
 // ----------------------
-// Handle login form submission
+// Handle login submission
 // ----------------------
 async function handleLoginSubmit(event) {
   event.preventDefault();
@@ -142,9 +108,6 @@ async function handleLoginSubmit(event) {
   const mobile = document.getElementById("mobile").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  // ----------------------
-  // Validation
-  // ----------------------
   if (!mobile) return showError("Please enter mobile number", "mobile");
   if (!validateMobile(mobile))
     return showError(
@@ -156,35 +119,35 @@ async function handleLoginSubmit(event) {
   setLoading(true);
 
   try {
-    const loginData = { mobile, password }; // No country code added
-
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(loginData),
+      body: JSON.stringify({ mobile, password }),
     });
 
     const data = await response.json();
 
     if (!response.ok) throw new Error(data.message || "Login failed");
 
-    if (data.success && data.user) {
+    // Save to localStorage using consistent keys
+    if (data.success && data.user && data.token) {
       localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("token", data.token);
 
       showNotification("Login successful! Redirecting...", "success");
-      setTimeout(() => (window.location.href = "dashboard.html"), 1500);
+      setTimeout(() => (window.location.href = "dashboard.html"), 1000);
     }
-  } catch (error) {
-    console.error("Login error:", error);
+  } catch (err) {
+    console.error("Login error:", err);
 
+    // Demo fallback
     if (
-      error.message.includes("Failed to fetch") ||
-      error.message.includes("NetworkError")
+      err.message.includes("Failed to fetch") ||
+      err.message.includes("NetworkError")
     ) {
       useDemoModeFallback(mobile, password);
     } else {
-      showNotification(error.message, "error");
+      showNotification(err.message, "error");
     }
   } finally {
     setLoading(false);
@@ -192,7 +155,7 @@ async function handleLoginSubmit(event) {
 }
 
 // ----------------------
-// Show error and focus input
+// Show error
 // ----------------------
 function showError(message, fieldId) {
   showNotification(message, "error");
@@ -200,7 +163,7 @@ function showError(message, fieldId) {
 }
 
 // ----------------------
-// Demo fallback
+// Demo fallback if backend unavailable
 // ----------------------
 function useDemoModeFallback(mobile, password) {
   if (mobile === "01700000000" && password === "demo123") {
@@ -216,13 +179,13 @@ function useDemoModeFallback(mobile, password) {
     const token = "demo_token_" + Date.now();
 
     localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("authToken", token);
+    localStorage.setItem("token", token);
 
     showNotification("Demo login successful! Redirecting...", "success");
-    setTimeout(() => (window.location.href = "dashboard.html"), 1500);
+    setTimeout(() => (window.location.href = "dashboard.html"), 1000);
   } else {
     showNotification(
-      "Backend unavailable. For demo, use: Mobile: 01700000000, Password: demo123",
+      "Backend unavailable. For demo, use Mobile: 01700000000, Password: demo123",
       "error",
     );
   }
@@ -235,10 +198,14 @@ if (!document.querySelector("#login-notification-styles")) {
   const style = document.createElement("style");
   style.id = "login-notification-styles";
   style.textContent = `
-    .login-notification { animation: slideIn 0.3s ease-out; position: fixed !important; top: 20px !important; right: 20px !important; z-index: 9999 !important; }
+    .login-notification {
+      animation: slideIn 0.3s ease-out;
+      position: fixed !important;
+      top: 20px !important;
+      right: 20px !important;
+      z-index: 9999 !important;
+    }
     @keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
-    .btn-warning { background-color: #f59e0b; color: white; border: none; }
-    .btn-warning:hover { background-color: #d97706; }
   `;
   document.head.appendChild(style);
 }
