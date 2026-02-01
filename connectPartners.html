@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect Partners - PTS</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9fafb; padding: 20px; }
+    .card { background: white; padding: 20px; border-radius: 0.5rem; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none; }
+    .active-btn { background-color: #10b981; color: white; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1 class="text-2xl font-bold mb-4">Connect Partners</h1>
+
+    <!-- Counts -->
+    <div class="flex gap-6 mb-4">
+      <div class="stat bg-emerald-50 p-4 rounded-lg text-center">
+        <div class="stat-title">Producers</div>
+        <div class="stat-value text-2xl" id="countProducers">0</div>
+      </div>
+      <div class="stat bg-emerald-50 p-4 rounded-lg text-center">
+        <div class="stat-title">Shopkeepers</div>
+        <div class="stat-value text-2xl" id="countShopkeepers">0</div>
+      </div>
+      <div class="stat bg-emerald-50 p-4 rounded-lg text-center">
+        <div class="stat-title">Distributors</div>
+        <div class="stat-value text-2xl" id="countDistributors">0</div>
+      </div>
+    </div>
+
+    <!-- Buttons to view list -->
+    <div class="flex gap-4 mb-4">
+      <button class="btn btn-sm active-btn" onclick="switchList('producers')">Producers</button>
+      <button class="btn btn-sm" onclick="switchList('shopkeepers')">Shopkeepers</button>
+      <button class="btn btn-sm" onclick="switchList('distributors')">Distributors</button>
+    </div>
+
+    <!-- Buttons to send new request -->
+    <div class="flex gap-4 mb-4">
+      <button class="btn btn-outline btn-sm" onclick="sendRequest('producers')"><i class="fas fa-paper-plane mr-2"></i>Send Request to Producer</button>
+      <button class="btn btn-outline btn-sm" onclick="sendRequest('shopkeepers')"><i class="fas fa-paper-plane mr-2"></i>Send Request to Shopkeeper</button>
+      <button class="btn btn-outline btn-sm" onclick="sendRequest('distributors')"><i class="fas fa-paper-plane mr-2"></i>Send Request to Distributor</button>
+    </div>
+
+    <!-- Partner Table -->
+    <div class="overflow-x-auto">
+      <table class="table w-full">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Mobile</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="partnerList">
+          <!-- Requests / Connected partners go here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Sample demo partners (replace with API fetch later)
+    let partners = [
+      { id: 1, name: "Rahim Uddin", role: "producer", mobile: "+88017XXXXXXX", status: "pending" },
+      { id: 2, name: "Karim Shop", role: "shopkeeper", mobile: "+88019XXXXXXX", status: "pending" },
+      { id: 3, name: "Sami Producer", role: "producer", mobile: "+88018XXXXXXX", status: "connected" },
+      { id: 4, name: "Bari Shop", role: "shopkeeper", mobile: "+88015XXXXXXX", status: "connected" },
+      { id: 5, name: "Dhaka Distributor", role: "distributor", mobile: "+88016XXXXXXX", status: "pending" }
+    ];
+
+    let currentList = 'producers';
+
+    const partnerListEl = document.getElementById("partnerList");
+    const countProducersEl = document.getElementById("countProducers");
+    const countShopkeepersEl = document.getElementById("countShopkeepers");
+    const countDistributorsEl = document.getElementById("countDistributors");
+
+    function renderList() {
+      partnerListEl.innerHTML = "";
+      const filtered = partners.filter(p => p.role === currentList);
+      filtered.forEach(p => {
+        const tr = document.createElement("tr");
+        tr.classList.add("fade-in");
+
+        let actionButtons = '';
+        if (p.status === 'pending') {
+          actionButtons = `
+            <button class="btn btn-xs btn-success" onclick="acceptPartner(${p.id})">Accept</button>
+            <button class="btn btn-xs btn-error" onclick="rejectPartner(${p.id})">Reject</button>
+          `;
+        } else {
+          actionButtons = `
+            <button class="btn btn-xs btn-warning" onclick="removePartner(${p.id})">Remove</button>
+          `;
+        }
+
+        tr.innerHTML = `
+          <td>${p.name}</td>
+          <td><span class="badge badge-outline">${capitalize(p.role)}</span></td>
+          <td>${p.mobile}</td>
+          <td class="flex gap-2">${actionButtons}</td>
+        `;
+        partnerListEl.appendChild(tr);
+      });
+
+      updateCounts();
+      updateActiveButton();
+    }
+
+    function acceptPartner(id) {
+      const p = partners.find(x => x.id === id);
+      if (p) p.status = 'connected';
+      renderList();
+    }
+
+    function rejectPartner(id) {
+      partners = partners.filter(x => x.id !== id);
+      renderList();
+    }
+
+    function removePartner(id) {
+      partners = partners.filter(x => x.id !== id);
+      renderList();
+    }
+
+    function switchList(role) {
+      currentList = role;
+      renderList();
+    }
+
+    function updateCounts() {
+      countProducersEl.textContent = partners.filter(p => p.role === 'producer' && p.status === 'connected').length;
+      countShopkeepersEl.textContent = partners.filter(p => p.role === 'shopkeeper' && p.status === 'connected').length;
+      countDistributorsEl.textContent = partners.filter(p => p.role === 'distributor' && p.status === 'connected').length;
+    }
+
+    function updateActiveButton() {
+      const buttons = document.querySelectorAll('.btn-sm');
+      buttons.forEach(btn => btn.classList.remove('active-btn'));
+      if(currentList === 'producers') buttons[0].classList.add('active-btn');
+      if(currentList === 'shopkeepers') buttons[1].classList.add('active-btn');
+      if(currentList === 'distributors') buttons[2].classList.add('active-btn');
+    }
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function sendRequest(type) {
+      const mobile = prompt(`Enter ${capitalize(type.slice(0,-1))} mobile number (+880...)`);
+      if(!mobile) return alert("Mobile number is required");
+
+      const name = prompt("Enter name");
+      if(!name) return alert("Name is required");
+
+      // generate unique ID
+      const id = Date.now();
+
+      partners.push({ id, name, role: type, mobile, status: "pending" });
+      alert(`Request sent to ${capitalize(type.slice(0,-1))}`);
+      renderList();
+    }
+
+    renderList();
+  </script>
+</body>
+</html>

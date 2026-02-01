@@ -10,7 +10,7 @@ const app = express();
 
 /* ===================== MIDDLEWARE ===================== */
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" })); // allow large Base64 QR
 app.use(express.static(".")); // serve frontend files
 
 /* ===================== DB CONNECTION ===================== */
@@ -27,33 +27,20 @@ const userSchema = new mongoose.Schema(
       enum: ["customer", "shopkeeper", "distributor", "producer", "admin"],
       required: true,
     },
-
     mobile: {
       type: String,
       required: true,
       unique: true,
-      immutable: true, // 🔒 never change
+      immutable: true,
       match: [/^\+880\d{10}$/, "Invalid Bangladeshi mobile"],
     },
-
     additionalMobile: {
       type: String,
       default: null,
       match: [/^01\d{9}$/, "Invalid mobile format"],
     },
-
-    nidNumber: {
-      type: String,
-      immutable: true, // 🔒 never change
-      default: null,
-    },
-
-    password: {
-      type: String,
-      required: true,
-    },
-
-    /* ===== PROFILE DATA (UPDATED FROM DASHBOARD) ===== */
+    nidNumber: { type: String, immutable: true, default: null },
+    password: { type: String, required: true },
     name: { type: String, default: "" },
     email: { type: String, default: "" },
     dateOfBirth: { type: Date, default: null },
@@ -72,7 +59,29 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+/* ===================== USER & PRODUCT MODELS ===================== */
 const User = mongoose.model("User", userSchema);
+
+const productSchema = new mongoose.Schema(
+  {
+    productName: { type: String, required: true },
+    producedDate: { type: Date, required: true },
+    expiryDate: { type: Date, required: true },
+    quantity: { type: Number, required: true },
+    price: { type: Number, required: true },
+    factoryAddress: { type: String, default: "" },
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    description: { type: String, default: "" },
+    qrImage: { type: String, default: "" },
+  },
+  { timestamps: true },
+);
+
+const Product = mongoose.model("Product", productSchema);
 
 /* ===================== AUTH MIDDLEWARE ===================== */
 function auth(req, res, next) {
@@ -80,11 +89,15 @@ function auth(req, res, next) {
   if (!header) return res.status(401).json({ message: "No token provided" });
 
   const token = header.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "No token provided" });
+
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { id: decoded.id, role: decoded.role }; // id and role
     next();
-  } catch {
-    res.status(401).json({ message: "Invalid token" });
+  } catch (err) {
+    console.error("JWT error:", err);
+    return res.status(401).json({ message: "Invalid token" });
   }
 }
 
@@ -99,32 +112,27 @@ app.get("/api/health", (req, res) => {
 app.post("/api/users", async (req, res) => {
   try {
     const { userType, nidNumber, mobile, password } = req.body;
-
-    if (!userType || !mobile || !password) {
+    if (!userType || !mobile || !password)
       return res.status(400).json({ message: "Missing required fields" });
-    }
 
-    const formattedMobile = `+880${mobile.substring(1)}`;
+    const formattedMobile = mobile.startsWith("+880")
+      ? mobile
+      : `+880${mobile.substring(1)}`;
 
     const exists = await User.findOne({ mobile: formattedMobile });
-    if (exists) {
+    if (exists)
       return res.status(400).json({ message: "Mobile already registered" });
-    }
 
     const user = new User({
       role: userType,
       mobile: formattedMobile,
-      additionalMobile: mobile, // first mobile stored here
-      password,
+      additionalMobile: mobile,
+      password, // raw password
       nidNumber: nidNumber || null,
     });
 
     await user.save();
-
-    res.status(201).json({
-      success: true,
-      message: "Registration successful",
-    });
+    res.status(201).json({ success: true, message: "Registration successful" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -135,7 +143,9 @@ app.post("/api/users", async (req, res) => {
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { mobile, password } = req.body;
-    const formattedMobile = `+880${mobile.substring(1)}`;
+    const formattedMobile = mobile.startsWith("+880")
+      ? mobile
+      : `+880${mobile.substring(1)}`;
 
     const user = await User.findOne({ mobile: formattedMobile });
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
@@ -149,12 +159,9 @@ app.post("/api/auth/login", async (req, res) => {
       { expiresIn: "7d" },
     );
 
-    res.json({
-      success: true,
-      token,
-      user,
-    });
+    res.json({ success: true, token, user });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -182,10 +189,6 @@ app.put("/api/user/update-profile", auth, async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // ❌ IMMUTABLE
-    // user.mobile ❌
-    // user.nidNumber ❌
-
     if (name !== undefined) user.name = name;
     if (email !== undefined) user.email = email;
     if (dateOfBirth !== undefined) user.dateOfBirth = dateOfBirth;
@@ -193,24 +196,185 @@ app.put("/api/user/update-profile", auth, async (req, res) => {
     if (businessName !== undefined) user.businessName = businessName;
     if (taxId !== undefined) user.taxId = taxId;
     if (description !== undefined) user.description = description;
-
-    if (additionalMobile) {
-      if (!/^01\d{9}$/.test(additionalMobile)) {
-        return res.status(400).json({ message: "Invalid mobile format" });
-      }
+    if (additionalMobile && /^01\d{9}$/.test(additionalMobile))
       user.additionalMobile = additionalMobile;
-    }
 
     await user.save();
-
-    res.json({
-      success: true,
-      message: "Profile updated successfully",
-      user,
-    });
+    res.json({ success: true, message: "Profile updated successfully", user });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Profile update failed" });
+  }
+});
+
+/* ===================== SAVE PRODUCT / QR ===================== */
+app.post("/api/products", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "producer")
+      return res.status(403).json({ message: "Access denied" });
+
+    const {
+      productName,
+      producedDate,
+      expiryDate,
+      quantity,
+      price,
+      factoryAddress,
+      description,
+      qrImage,
+    } = req.body;
+    if (!productName || !producedDate || !expiryDate || !quantity || !price) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const product = new Product({
+      productName,
+      producedDate: new Date(producedDate),
+      expiryDate: new Date(expiryDate),
+      quantity: Number(quantity),
+      price: Number(price),
+      factoryAddress: factoryAddress || "",
+      owner: req.user.id,
+      description: description || "",
+      qrImage: qrImage || "",
+    });
+
+    await product.save();
+    res
+      .status(201)
+      .json({
+        success: true,
+        message: "Product QR info saved successfully",
+        product,
+      });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to save product info" });
+  }
+});
+
+const PartnerRequest = require("./models/PartnerRequest");
+
+/* ===================== SEND PARTNER REQUEST ===================== */
+app.post("/api/partners/request", auth, async (req, res) => {
+  try {
+    const { mobile, type } = req.body; // type = "shopkeeper"/"producer"/"distributor"
+    if (!mobile || !type)
+      return res.status(400).json({ message: "Mobile and type are required" });
+
+    const receiver = await User.findOne({ mobile });
+    if (!receiver) return res.status(404).json({ message: "User not found" });
+
+    // Prevent sending duplicate pending requests
+    const existing = await PartnerRequest.findOne({
+      "sender.id": req.user.id,
+      receiverId: receiver._id,
+      type,
+      status: "pending",
+    });
+    if (existing)
+      return res.status(400).json({ message: "Request already sent" });
+
+    const senderUser = await User.findById(req.user.id);
+
+    const request = await PartnerRequest.create({
+      sender: {
+        id: senderUser._id,
+        name: senderUser.name,
+        role: senderUser.role,
+        mobile: senderUser.mobile,
+      },
+      receiverId: receiver._id,
+      type,
+      status: "pending",
+    });
+
+    res.status(201).json({ success: true, message: "Request sent", request });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to send request" });
+  }
+});
+
+/* ===================== GET PARTNER REQUESTS ===================== */
+app.get("/api/partners/list", auth, async (req, res) => {
+  try {
+    const { type, incoming } = req.query;
+    // incoming=true -> requests received, false/undefined -> requests sent
+    let filter = { type };
+    if (incoming === "true") {
+      filter.receiverId = req.user.id;
+    } else {
+      filter["sender.id"] = req.user.id;
+    }
+
+    const requests = await PartnerRequest.find(filter)
+      .populate("receiverId", "name role mobile") // get receiver info
+      .sort({ createdAt: -1 });
+
+    res.json(requests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch requests" });
+  }
+});
+
+/* ===================== UPDATE REQUEST STATUS ===================== */
+app.put("/api/partners/update/:id", auth, async (req, res) => {
+  try {
+    const { status } = req.body; // "connected" / "rejected" / "pending"
+    const { id } = req.params;
+
+    const request = await PartnerRequest.findById(id);
+    if (!request) return res.status(404).json({ message: "Request not found" });
+
+    // Only receiver can accept/reject
+    if (request.receiverId.toString() !== req.user.id)
+      return res.status(403).json({ message: "Not authorized" });
+
+    request.status = status;
+    await request.save();
+
+    res.json({ success: true, message: "Status updated", request });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update status" });
+  }
+});
+
+/* ===================== REMOVE / CANCEL PARTNER ===================== */
+app.delete("/api/partners/remove/:id", auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const request = await PartnerRequest.findById(id);
+    if (!request) return res.status(404).json({ message: "Request not found" });
+
+    // Only sender or receiver can remove
+    if (
+      request.receiverId.toString() !== req.user.id &&
+      request.sender.id.toString() !== req.user.id
+    )
+      return res.status(403).json({ message: "Not authorized" });
+
+    await PartnerRequest.findByIdAndDelete(id);
+    res.json({ success: true, message: "Partner removed" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to remove partner" });
+  }
+});
+
+
+/* ===================== STOCK API ===================== */
+app.get("/api/products", auth, async (req, res) => {
+  try {
+    const products = await Product.find({ owner: req.user.id }).sort({
+      createdAt: -1,
+    });
+    res.json(products);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch products" });
   }
 });
 
