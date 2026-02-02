@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Scanner</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/daisyui@5"
+    rel="stylesheet"
+  />
+  <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+  <style>
+    #qr-reader {
+      width: 100%;
+      max-width: 500px;
+      margin: auto;
+    }
+    #qr-result {
+      margin-top: 20px;
+      background: #f3f4f6;
+      padding: 15px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 p-6">
+  <h1 class="text-2xl font-bold mb-4 text-center">QR Code Scanner</h1>
+
+  <div id="qr-reader"></div>
+
+  <div id="qr-result" class="hidden">
+    <h2 class="font-bold text-lg">Scanned Information:</h2>
+    <pre id="qr-content" class="whitespace-pre-wrap"></pre>
+  </div>
+
+  <script>
+    function onScanSuccess(decodedText, decodedResult) {
+      // Show result
+      const resultDiv = document.getElementById("qr-result");
+      const contentPre = document.getElementById("qr-content");
+
+      resultDiv.classList.remove("hidden");
+      try {
+        const data = JSON.parse(decodedText); // If QR contains JSON
+        contentPre.textContent = JSON.stringify(data, null, 2);
+      } catch {
+        contentPre.textContent = decodedText; // plain text fallback
+      }
+
+      // Optional: Stop scanning after first successful scan
+      html5QrcodeScanner.clear();
+    }
+
+    function onScanFailure(error) {
+      // No action needed on scan failure
+    }
+
+    const html5QrcodeScanner = new Html5Qrcode("qr-reader");
+    const config = { fps: 10, qrbox: 250 };
+
+    // Start camera
+    Html5Qrcode.getCameras().then((devices) => {
+      if (devices && devices.length) {
+        html5QrcodeScanner.start(
+          { facingMode: "environment" }, // Back camera preferred
+          config,
+          onScanSuccess,
+          onScanFailure
+        );
+      } else {
+        alert("No camera found on this device.");
+      }
+    }).catch(err => {
+      console.error("Camera initialization error:", err);
+    });
+  </script>
+</body>
+</html>

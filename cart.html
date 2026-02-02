@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body { background-color: #f3f4f6; }
+    .cart-card { transition: transform 0.2s; }
+    .cart-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    .cart-summary { background-color: #10b981; color: white; border-radius: 0.5rem; padding: 1rem; }
+  </style>
+</head>
+<body class="min-h-screen p-6">
+
+  <div class="max-w-5xl mx-auto">
+    <h1 class="text-4xl font-bold mb-6 text-gray-700">🛒 Your Shopping Cart</h1>
+
+    <div id="cart-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Cart items will be rendered here -->
+    </div>
+
+    <div id="cart-summary" class="cart-summary mt-6 text-right text-xl font-semibold hidden">
+      Total: ৳<span id="total-price">0.00</span>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("token");
+
+    async function fetchCart() {
+      const container = document.getElementById("cart-container");
+      const summary = document.getElementById("cart-summary");
+      const totalPriceEl = document.getElementById("total-price");
+      container.innerHTML = `<p class="col-span-2 text-center text-gray-500 py-4">Loading cart...</p>`;
+      summary.classList.add("hidden");
+
+      if (!token) {
+        Swal.fire("Unauthorized ❌", "Please login to view your cart.", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:3000/api/cart", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch cart");
+
+        const data = await res.json();
+        const items = data.items || [];
+
+        if (items.length === 0) {
+          container.innerHTML = `<p class="col-span-2 text-center text-gray-500 py-4">Your cart is empty.</p>`;
+          summary.classList.add("hidden");
+          return;
+        }
+
+        container.innerHTML = "";
+        let totalPrice = 0;
+
+        items.forEach(item => {
+          const itemTotal = item.price * item.quantity;
+          totalPrice += itemTotal;
+
+          const card = document.createElement("div");
+          card.className = "card bg-white shadow cart-card p-4 rounded-lg flex gap-4";
+          card.innerHTML = `
+            <img src="${item.image || 'https://via.placeholder.com/100'}" class="w-24 h-24 rounded-lg object-cover" alt="${item.name}">
+            <div class="flex-1">
+              <h2 class="font-bold text-lg text-gray-700">${item.name}</h2>
+              <p class="text-gray-500 mt-1">Price: ৳${item.price.toFixed(2)}</p>
+              <p class="text-gray-500 mt-1">Quantity: ${item.quantity}</p>
+              <p class="text-gray-700 font-semibold mt-1">Total: ৳${itemTotal.toFixed(2)}</p>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+        totalPriceEl.textContent = totalPrice.toFixed(2);
+        summary.classList.remove("hidden");
+
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = `<p class="col-span-2 text-center text-red-500 py-4">Failed to load cart. Try again later.</p>`;
+        summary.classList.add("hidden");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", fetchCart);
+  </script>
+  <!-- 2022331034 -->
+
+</body>
+</html>

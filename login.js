@@ -129,18 +129,20 @@ async function handleLoginSubmit(event) {
 
     if (!response.ok) throw new Error(data.message || "Login failed");
 
-    // Save to localStorage using consistent keys
-    if (data.success && data.user && data.token) {
+    // ✅ Fixed: Save if user & token exist
+    if (data.user && data.token) {
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
 
       showNotification("Login successful! Redirecting...", "success");
       setTimeout(() => (window.location.href = "dashboard.html"), 1000);
+    } else {
+      showNotification(data.message || "Login failed", "error");
     }
   } catch (err) {
     console.error("Login error:", err);
 
-    // Demo fallback
+    // Demo fallback if backend unavailable
     if (
       err.message.includes("Failed to fetch") ||
       err.message.includes("NetworkError")

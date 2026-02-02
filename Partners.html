@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Partner Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <style>
+    body { background: #f4f6f8; font-family: Arial, sans-serif; padding: 20px; }
+    .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .fade { animation: fade 0.3s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+
+<body>
+
+<!-- ===== DASHBOARD ===== -->
+<div class="card">
+  <h2 class="text-2xl font-bold mb-4">Partner Dashboard</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="stat bg-emerald-50 rounded">
+      <div class="stat-title">Producers</div>
+      <div class="stat-value" id="countProducer">0</div>
+      <button class="btn btn-sm mt-2" onclick="openList('producer')">View List</button>
+    </div>
+    <div class="stat bg-emerald-50 rounded">
+      <div class="stat-title">Shopkeepers</div>
+      <div class="stat-value" id="countShopkeeper">0</div>
+      <button class="btn btn-sm mt-2" onclick="openList('shopkeeper')">View List</button>
+    </div>
+    <div class="stat bg-emerald-50 rounded">
+      <div class="stat-title">Distributors</div>
+      <div class="stat-value" id="countDistributor">0</div>
+      <button class="btn btn-sm mt-2" onclick="openList('distributor')">View List</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ACTIONS ===== -->
+<div class="card">
+  <h3 class="text-xl font-bold mb-3">Actions</h3>
+  <div class="flex flex-wrap gap-3">
+    <button class="btn btn-outline" onclick="openSend()">
+      <i class="fa fa-paper-plane mr-2"></i>Send Partner Request
+    </button>
+    <button class="btn btn-outline" onclick="openRequests()">
+      <i class="fa fa-inbox mr-2"></i>Received Requests
+    </button>
+  </div>
+</div>
+
+<!-- ===== CONTENT ===== -->
+<div class="card hidden" id="contentBox">
+  <h3 class="text-xl font-bold mb-3" id="contentTitle"></h3>
+  <table class="table w-full">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Partner Type</th>
+        <th>Mobile</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="contentTable"></tbody>
+  </table>
+</div>
+
+<!-- ===== SEND REQUEST MODAL ===== -->
+<dialog id="sendModal" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-3">Send Partner Request</h3>
+    <input class="input input-bordered w-full mb-2" placeholder="Name" id="reqName">
+    <input class="input input-bordered w-full mb-2" placeholder="Mobile Number" id="reqMobile">
+    <select class="select select-bordered w-full mb-4" id="reqType">
+      <option value="producer">Producer</option>
+      <option value="shopkeeper">Shopkeeper</option>
+      <option value="distributor">Distributor</option>
+    </select>
+    <div class="modal-action">
+      <button class="btn btn-success" onclick="sendRequest()">Send</button>
+      <button class="btn" onclick="sendModal.close()">Cancel</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You are not logged in!");
+    window.location.href = "login.html";
+  }
+
+  const box = document.getElementById("contentBox");
+  const table = document.getElementById("contentTable");
+  const title = document.getElementById("contentTitle");
+  const sendModal = document.getElementById("sendModal");
+
+  let currentUser = { partners: [] };
+
+  // ===================== FETCH PARTNERS =====================
+  async function fetchPartners() {
+    try {
+      const res = await fetch("/api/partners/list", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      currentUser.partners = await res.json();
+      updateCounts();
+    } catch (err) {
+      console.error("Error fetching partners:", err);
+      alert("Failed to fetch partners. Check console.");
+    }
+  }
+
+  // ===================== UPDATE COUNTS =====================
+  function updateCounts() {
+    document.getElementById("countProducer").innerText =
+      currentUser.partners.filter(p => p.partnerType === "producer" && p.status === "connected").length;
+    document.getElementById("countShopkeeper").innerText =
+      currentUser.partners.filter(p => p.partnerType === "shopkeeper" && p.status === "connected").length;
+    document.getElementById("countDistributor").innerText =
+      currentUser.partners.filter(p => p.partnerType === "distributor" && p.status === "connected").length;
+  }
+
+  // ===================== RENDER TABLE =====================
+  function renderTable(partners, isRequest = false, titleText = "") {
+    box.classList.remove("hidden");
+    title.innerText = titleText;
+    table.innerHTML = "";
+
+    partners.forEach(p => {
+      const tr = document.createElement("tr");
+      tr.classList.add("fade");
+      tr.innerHTML = `
+        <td>${p.name || "—"}</td>
+        <td><span class="badge">${capitalize(p.partnerType)}</span></td>
+        <td>${p.receiverMobile}</td>
+        <td>
+          ${
+            isRequest
+              ? `<button class="btn btn-xs btn-success" onclick="accept('${p.receiverMobile}')">Accept</button>
+                 <button class="btn btn-xs btn-error" onclick="reject('${p.receiverMobile}')">Reject</button>`
+              : `<button class="btn btn-xs btn-warning" onclick="removePartner('${p.receiverMobile}')">Remove</button>`
+          }
+        </td>
+      `;
+      table.appendChild(tr);
+    });
+  }
+
+  // ===================== OPEN LIST =====================
+  function openList(type) {
+    const partners = currentUser.partners.filter(p => p.partnerType === type && p.status === "connected");
+    renderTable(partners, false, `${capitalize(type)} Partners`);
+  }
+
+  // ===================== OPEN RECEIVED REQUESTS =====================
+  function openRequests() {
+    const partners = currentUser.partners.filter(p => p.status === "pending");
+    renderTable(partners, true, "Received Requests");
+  }
+
+  // ===================== SEND PARTNER REQUEST =====================
+  async function sendRequest() {
+    const mobile = reqMobile.value.trim();
+    const type = reqType.value;
+
+    if (!mobile) return alert("Mobile number required");
+
+    try {
+      const res = await fetch("/api/partners/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ receiverMobile: mobile, partnerType: type }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Request sent!");
+        sendModal.close();
+        reqMobile.value = "";
+        await fetchPartners(); // refresh dynamically
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      console.error("Error sending request:", err);
+      alert("Failed to send request");
+    }
+  }
+
+  function openSend() {
+    sendModal.showModal();
+  }
+
+  // ===================== ACCEPT / REJECT / REMOVE =====================
+  async function accept(mobile) { await updatePartnerStatus(mobile, "connected"); }
+  async function reject(mobile) { await updatePartnerStatus(mobile, "rejected"); }
+  async function removePartner(mobile) { await updatePartnerStatus(mobile, "rejected"); }
+
+  async function updatePartnerStatus(senderMobile, status) {
+    try {
+      const res = await fetch("/api/partners/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ senderMobile, status }),
+      });
+      const data = await res.json();
+      if (data.success) await fetchPartners(); // refresh dynamically
+      else alert(data.message);
+    } catch (err) {
+      console.error("Error updating status:", err);
+      alert("Failed to update partner status");
+    }
+  }
+
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  // ===================== INITIALIZE =====================
+  fetchPartners();
+</script>
+
+
+</body>
+</html>

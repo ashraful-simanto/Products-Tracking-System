@@ -31,7 +31,7 @@
     <input id="price" type="number" placeholder="Price" />
   </div>
   <input id="factoryAddress" placeholder="Factory Address" />
-  <input id="owner" placeholder="Producer Business ID" disabled />
+  <input id="owner" placeholder="Owner ID" disabled />
   <textarea id="description" rows="3" placeholder="Product Description"></textarea>
 
   <button onclick="generateQR()">Generate & Save QR</button>
@@ -43,55 +43,75 @@
 <script>
 const user = JSON.parse(localStorage.getItem("user"));
 const token = localStorage.getItem("token");
-console.log("User:", user);
-console.log("Token:", token);
 
-if (!user || user.role !== "producer") {
+if (!user || !token || user.role !== "producer") {
   alert("Unauthorized access");
   window.location.href = "login.html";
 }
 
-document.getElementById("owner").value = user.businessName || user._id;
+// Set owner field in UI
+document.getElementById("owner").value = user._id;
 
 async function generateQR() {
-  // Collect data
-  const data = {
-    productName: document.getElementById("productName").value.trim(),
-    producedDate: document.getElementById("producedDate").value,
-    expiryDate: document.getElementById("expiryDate").value,
-    quantity: Number(document.getElementById("quantity").value),
-    price: Number(document.getElementById("price").value),
-    factoryAddress: document.getElementById("factoryAddress").value.trim(),
-    description: document.getElementById("description").value.trim(),
-  };
+  // Collect input data
+  const productName = document.getElementById("productName").value.trim();
+  const producedDate = document.getElementById("producedDate").value;
+  const expiryDate = document.getElementById("expiryDate").value;
+  const quantity = document.getElementById("quantity").value;
+  const price = document.getElementById("price").value;
+  const factoryAddress = document.getElementById("factoryAddress").value.trim();
+  const description = document.getElementById("description").value.trim();
+  const owner = user._id;
 
   // Validation
-  if (!data.productName || !data.producedDate || !data.expiryDate || !data.quantity || !data.price) {
+  if (!productName || !producedDate || !expiryDate || quantity === "" || price === "" || !owner) {
     alert("Please fill all required fields");
     return;
   }
 
-  // Generate QR
-  const qrData = encodeURIComponent(JSON.stringify({ ...data, owner: user._id }));
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${qrData}`;
-  const qrBase64 = await urlToBase64(qrUrl);
-  document.getElementById("qrPreview").src = qrBase64;
+  const data = {
+    productName,
+    producedDate,
+    expiryDate,
+    quantity: Number(quantity),
+    price: Number(price),
+    factoryAddress,
+    description,
+    owner
+  };
 
-  // Send to backend
   try {
+    // Generate QR
+    const qrData = encodeURIComponent(JSON.stringify(data));
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${qrData}`;
+    const qrImage = await urlToBase64(qrUrl); // This will be stored in DB
+
+    // Show preview
+    document.getElementById("qrPreview").src = qrImage;
+
+    // Send to backend
     const res = await fetch("http://localhost:3000/api/products", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+        "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify({ ...data, qrImage: qrBase64 }),
+      body: JSON.stringify({ ...data, qrImage })
     });
 
     const result = await res.json();
 
     if (res.status === 201 && result.success) {
-      alert("✅ Product QR saved successfully!");
+      alert("✅ Product saved successfully!");
+      // Reset form
+      document.getElementById("productName").value = "";
+      document.getElementById("producedDate").value = "";
+      document.getElementById("expiryDate").value = "";
+      document.getElementById("quantity").value = "";
+      document.getElementById("price").value = "";
+      document.getElementById("factoryAddress").value = "";
+      document.getElementById("description").value = "";
+      document.getElementById("qrPreview").src = "";
     } else {
       alert("❌ Failed: " + (result.message || "Unknown error"));
     }
@@ -101,6 +121,7 @@ async function generateQR() {
   }
 }
 
+// Convert URL to Base64
 async function urlToBase64(url) {
   const response = await fetch(url);
   const blob = await response.blob();

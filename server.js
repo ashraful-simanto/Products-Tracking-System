@@ -10,14 +10,22 @@ const app = express();
 
 /* ===================== MIDDLEWARE ===================== */
 app.use(cors());
-app.use(express.json({ limit: "10mb" })); // allow large Base64 QR
-app.use(express.static(".")); // serve frontend files
+app.use(express.json({ limit: "10mb" }));
+app.use(express.static("."));
 
 /* ===================== DB CONNECTION ===================== */
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB error:", err));
+
+/* ===================== UTILITY ===================== */
+function normalizeMobile(mobile) {
+  if (!mobile) return null;
+  if (mobile.startsWith("+880")) return mobile;
+  if (mobile.startsWith("01")) return `+880${mobile.substring(1)}`;
+  return mobile;
+}
 
 /* ===================== USER SCHEMA ===================== */
 const userSchema = new mongoose.Schema(
@@ -34,49 +42,76 @@ const userSchema = new mongoose.Schema(
       immutable: true,
       match: [/^\+880\d{10}$/, "Invalid Bangladeshi mobile"],
     },
-    additionalMobile: {
-      type: String,
-      default: null,
-      match: [/^01\d{9}$/, "Invalid mobile format"],
-    },
-    nidNumber: { type: String, immutable: true, default: null },
     password: { type: String, required: true },
     name: { type: String, default: "" },
     email: { type: String, default: "" },
-    dateOfBirth: { type: Date, default: null },
     address: { type: String, default: "" },
     businessName: { type: String, default: "" },
-    taxId: { type: String, default: "" },
-    description: { type: String, default: "" },
   },
   { timestamps: true },
 );
 
-/* ===================== PASSWORD HASH ===================== */
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-/* ===================== USER & PRODUCT MODELS ===================== */
 const User = mongoose.model("User", userSchema);
 
+/* ===================== PARTNER SCHEMA ===================== */
+const PartnerItemSchema = new mongoose.Schema(
+  {
+    receiverMobile: String,
+    name: { type: String, default: "" },
+    partnerType: {
+      type: String,
+      enum: ["producer", "shopkeeper", "distributor"],
+    },
+    status: {
+      type: String,
+      enum: ["pending", "requested", "connected"],
+      default: "pending",
+    },
+  },
+  { _id: false },
+);
+
+const PartnerConnectionSchema = new mongoose.Schema(
+  {
+    mobile: { type: String, unique: true },
+    role: String,
+    partners: { type: [PartnerItemSchema], default: [] },
+  },
+  { timestamps: true },
+);
+
+const PartnerConnection = mongoose.model(
+  "PartnerConnection",
+  PartnerConnectionSchema,
+);
+
+/* ===================== PRODUCT SCHEMA ===================== */
 const productSchema = new mongoose.Schema(
   {
     productName: { type: String, required: true },
     producedDate: { type: Date, required: true },
     expiryDate: { type: Date, required: true },
-    quantity: { type: Number, required: true },
+    quantity: { type: Number, default: 0 },
     price: { type: Number, required: true },
-    factoryAddress: { type: String, default: "" },
+    factoryAddress: { type: String },
+    description: { type: String },
+    qrImage: { type: String },
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    description: { type: String, default: "" },
-    qrImage: { type: String, default: "" },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   { timestamps: true },
 );
@@ -88,131 +123,85 @@ function auth(req, res, next) {
   const header = req.headers.authorization;
   if (!header) return res.status(401).json({ message: "No token provided" });
 
-  const token = header.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "No token provided" });
-
   try {
+    const token = header.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id, role: decoded.role }; // id and role
+    req.user = decoded;
     next();
   } catch (err) {
-    console.error("JWT error:", err);
-    return res.status(401).json({ message: "Invalid token" });
+    res.status(401).json({ message: "Invalid token" });
   }
 }
-
-/* ===================== ROUTES ===================== */
-
-// Health check
-app.get("/api/health", (req, res) => {
-  res.json({ success: true, message: "API running" });
-});
 
 /* ===================== REGISTER ===================== */
 app.post("/api/users", async (req, res) => {
   try {
-    const { userType, nidNumber, mobile, password } = req.body;
+    let { userType, mobile, password, businessName } = req.body;
     if (!userType || !mobile || !password)
       return res.status(400).json({ message: "Missing required fields" });
 
-    const formattedMobile = mobile.startsWith("+880")
-      ? mobile
-      : `+880${mobile.substring(1)}`;
+    mobile = normalizeMobile(mobile);
 
-    const exists = await User.findOne({ mobile: formattedMobile });
+    const exists = await User.findOne({ mobile });
     if (exists)
       return res.status(400).json({ message: "Mobile already registered" });
 
-    const user = new User({
+    const user = await User.create({
       role: userType,
-      mobile: formattedMobile,
-      additionalMobile: mobile,
-      password, // raw password
-      nidNumber: nidNumber || null,
+      mobile,
+      password,
+      businessName: businessName || "",
     });
 
-    await user.save();
-    res.status(201).json({ success: true, message: "Registration successful" });
+    await PartnerConnection.create({ mobile, role: userType });
+
+    res.status(201).json({ success: true, user });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Register error:", err);
+    res.status(500).json({ message: err.message });
   }
 });
 
 /* ===================== LOGIN ===================== */
 app.post("/api/auth/login", async (req, res) => {
   try {
-    const { mobile, password } = req.body;
-    const formattedMobile = mobile.startsWith("+880")
-      ? mobile
-      : `+880${mobile.substring(1)}`;
+    let { mobile, password } = req.body;
+    mobile = normalizeMobile(mobile);
 
-    const user = await User.findOne({ mobile: formattedMobile });
+    const user = await User.findOne({ mobile });
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, mobile: user.mobile, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
 
-    res.json({ success: true, token, user });
+    res.json({ token, user });
   } catch (err) {
-    console.error(err);
+    console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-/* ===================== GET CURRENT USER ===================== */
-app.get("/api/user/me", auth, async (req, res) => {
-  const user = await User.findById(req.user.id).select("-password");
-  res.json(user);
-});
-
-/* ===================== UPDATE PROFILE ===================== */
-app.put("/api/user/update-profile", auth, async (req, res) => {
+/* ===================== PRODUCT ROUTES ===================== */
+// Fetch all products
+app.get("/api/products", auth, async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      dateOfBirth,
-      address,
-      businessName,
-      taxId,
-      description,
-      additionalMobile,
-    } = req.body;
-
-    const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    if (name !== undefined) user.name = name;
-    if (email !== undefined) user.email = email;
-    if (dateOfBirth !== undefined) user.dateOfBirth = dateOfBirth;
-    if (address !== undefined) user.address = address;
-    if (businessName !== undefined) user.businessName = businessName;
-    if (taxId !== undefined) user.taxId = taxId;
-    if (description !== undefined) user.description = description;
-    if (additionalMobile && /^01\d{9}$/.test(additionalMobile))
-      user.additionalMobile = additionalMobile;
-
-    await user.save();
-    res.json({ success: true, message: "Profile updated successfully", user });
+    const products = await Product.find();
+    res.json(products);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Profile update failed" });
+    console.error("Fetch products error:", err);
+    res.status(500).json({ message: "Failed to fetch products" });
   }
 });
 
-/* ===================== SAVE PRODUCT / QR ===================== */
+// Add a product - FIXED
 app.post("/api/products", auth, async (req, res) => {
   try {
-    if (req.user.role !== "producer")
-      return res.status(403).json({ message: "Access denied" });
-
     const {
       productName,
       producedDate,
@@ -222,161 +211,227 @@ app.post("/api/products", auth, async (req, res) => {
       factoryAddress,
       description,
       qrImage,
+      owner,
     } = req.body;
-    if (!productName || !producedDate || !expiryDate || !quantity || !price) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
 
-    const product = new Product({
+    // Validate required fields
+    if (!productName)
+      return res.status(400).json({ message: "Product name is required" });
+    if (!producedDate)
+      return res.status(400).json({ message: "Produced date is required" });
+    if (!expiryDate)
+      return res.status(400).json({ message: "Expiry date is required" });
+    if (quantity == null)
+      return res.status(400).json({ message: "Quantity is required" });
+    if (price == null)
+      return res.status(400).json({ message: "Price is required" });
+    if (!owner)
+      return res.status(400).json({ message: "Owner ID is required" });
+
+    // Validate owner exists
+    const ownerUser = await User.findById(owner);
+    if (!ownerUser)
+      return res.status(400).json({ message: "Owner user not found" });
+
+    // Parse dates
+    const produced = new Date(producedDate);
+    const expiry = new Date(expiryDate);
+    if (isNaN(produced.getTime()) || isNaN(expiry.getTime()))
+      return res.status(400).json({ message: "Invalid date format" });
+
+    // Create product
+    const product = await Product.create({
       productName,
-      producedDate: new Date(producedDate),
-      expiryDate: new Date(expiryDate),
+      producedDate: produced,
+      expiryDate: expiry,
       quantity: Number(quantity),
       price: Number(price),
       factoryAddress: factoryAddress || "",
-      owner: req.user.id,
       description: description || "",
       qrImage: qrImage || "",
+      owner: ownerUser._id,
+      createdBy: req.user.id,
     });
 
-    await product.save();
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Product QR info saved successfully",
-        product,
-      });
+    res.status(201).json({ success: true, product });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to save product info" });
+    console.error("Add product error:", err);
+    res.status(500).json({ message: err.message || "Failed to add product" });
   }
 });
 
-const PartnerRequest = require("./models/PartnerRequest");
+// Update product
+app.put("/api/products/:id", auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const product = await Product.findByIdAndUpdate(id, updates, { new: true });
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    res.json({ success: true, product });
+  } catch (err) {
+    console.error("Update product error:", err);
+    res.status(500).json({ message: "Failed to update product" });
+  }
+});
 
-/* ===================== SEND PARTNER REQUEST ===================== */
+// Delete product
+app.delete("/api/products/:id", auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    res.json({ success: true, message: "Product deleted" });
+  } catch (err) {
+    console.error("Delete product error:", err);
+    res.status(500).json({ message: "Failed to delete product" });
+  }
+});
+
+/* ===================== GET MY PARTNERS (fixed) ===================== */
+app.get("/api/partners/list", auth, async (req, res) => {
+  try {
+    const mobile = normalizeMobile(req.user.mobile);
+    const data = await PartnerConnection.findOne({ mobile });
+    if (!data) return res.json([]);
+
+    // Map partners and fetch their names from User
+    const partnersWithName = await Promise.all(
+      data.partners.map(async (p) => {
+        const user = await User.findOne({ mobile: p.receiverMobile });
+        return {
+          receiverMobile: p.receiverMobile,
+          partnerType: p.partnerType,
+          status: p.status,
+          name: user ? user.name || user.businessName || "" : "",
+        };
+      })
+    );
+
+    res.json(partnersWithName);
+  } catch (err) {
+    console.error("Get partners error:", err);
+    res.status(500).json({ message: "Failed to fetch partners" });
+  }
+});
+
+/* ===================== SEND PARTNER REQUEST (fixed) ===================== */
 app.post("/api/partners/request", auth, async (req, res) => {
   try {
-    const { mobile, type } = req.body; // type = "shopkeeper"/"producer"/"distributor"
-    if (!mobile || !type)
-      return res.status(400).json({ message: "Mobile and type are required" });
+    let { receiverMobile, partnerType } = req.body;
+    if (!receiverMobile || !partnerType)
+      return res.status(400).json({ message: "Missing fields" });
 
-    const receiver = await User.findOne({ mobile });
-    if (!receiver) return res.status(404).json({ message: "User not found" });
+    receiverMobile = normalizeMobile(receiverMobile);
+    const senderMobile = normalizeMobile(req.user.mobile);
 
-    // Prevent sending duplicate pending requests
-    const existing = await PartnerRequest.findOne({
-      "sender.id": req.user.id,
-      receiverId: receiver._id,
-      type,
+    const receiverUser = await User.findOne({ mobile: receiverMobile });
+    if (!receiverUser)
+      return res.status(404).json({ message: "Receiver not found" });
+
+    let sender = await PartnerConnection.findOne({ mobile: senderMobile });
+    if (!sender)
+      sender = await PartnerConnection.create({
+        mobile: senderMobile,
+        role: req.user.role,
+      });
+
+    let receiver = await PartnerConnection.findOne({ mobile: receiverMobile });
+    if (!receiver)
+      receiver = await PartnerConnection.create({
+        mobile: receiverMobile,
+        role: receiverUser.role,
+      });
+
+    const exists = sender.partners.some(
+      (p) => p.receiverMobile === receiverMobile
+    );
+    if (exists)
+      return res.status(400).json({ message: "Request already exists" });
+
+    sender.partners.push({ receiverMobile, partnerType, status: "requested" });
+    receiver.partners.push({
+      receiverMobile: senderMobile,
+      partnerType: req.user.role,
       status: "pending",
     });
-    if (existing)
-      return res.status(400).json({ message: "Request already sent" });
 
-    const senderUser = await User.findById(req.user.id);
+    await sender.save();
+    await receiver.save();
 
-    const request = await PartnerRequest.create({
-      sender: {
-        id: senderUser._id,
-        name: senderUser.name,
-        role: senderUser.role,
-        mobile: senderUser.mobile,
-      },
-      receiverId: receiver._id,
-      type,
-      status: "pending",
-    });
-
-    res.status(201).json({ success: true, message: "Request sent", request });
+    res.json({ success: true, message: "Partner request sent" });
   } catch (err) {
-    console.error(err);
+    console.error("Partner request error:", err);
     res.status(500).json({ message: "Failed to send request" });
   }
 });
 
-/* ===================== GET PARTNER REQUESTS ===================== */
-app.get("/api/partners/list", auth, async (req, res) => {
+// transit
+// Transit schema (extend existing Product + Partner)
+const transitSchema = new mongoose.Schema({
+  partnerMobile: String,
+  product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+  quantity: Number,
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  transitStatus: { type: Boolean, default: false },
+  receivedStatus: { type: Boolean, default: false },
+}, { timestamps: true });
+
+const Transit = mongoose.model("Transit", transitSchema);
+
+// Send product to partner
+app.post("/api/transit/send", auth, async (req, res) => {
   try {
-    const { type, incoming } = req.query;
-    // incoming=true -> requests received, false/undefined -> requests sent
-    let filter = { type };
-    if (incoming === "true") {
-      filter.receiverId = req.user.id;
-    } else {
-      filter["sender.id"] = req.user.id;
+    const { partnerMobile, productId, quantity, transitStatus, receivedStatus } = req.body;
+
+    if (!partnerMobile || !productId || !quantity) return res.status(400).json({ message: "Missing fields" });
+
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (product.quantity < quantity) return res.status(400).json({ message: "Insufficient quantity" });
+
+    // Reduce owner quantity
+    product.quantity -= quantity;
+    await product.save();
+
+    // Create transit record
+    await Transit.create({
+      partnerMobile,
+      product: productId,
+      quantity,
+      sender: req.user.id,
+      transitStatus: !!transitStatus,
+      receivedStatus: !!receivedStatus
+    });
+
+    res.json({ success: true });
+  } catch(err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to send product" });
+  }
+});
+/* ===================== SWITCH ROLE ===================== */
+app.post("/api/auth/switch-role", auth, async (req, res) => {
+  try {
+    const { newRole } = req.body;
+    const validRoles = ["customer", "shopkeeper", "distributor", "producer", "admin"];
+    if (!validRoles.includes(newRole)) {
+      return res.status(400).json({ message: "Invalid role" });
     }
 
-    const requests = await PartnerRequest.find(filter)
-      .populate("receiverId", "name role mobile") // get receiver info
-      .sort({ createdAt: -1 });
+    // Issue a new JWT with the switched role
+    const token = jwt.sign(
+      { id: req.user.id, mobile: req.user.mobile, role: newRole },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-    res.json(requests);
+    res.json({ success: true, token, activeRole: newRole });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to fetch requests" });
+    console.error("Switch role error:", err);
+    res.status(500).json({ message: "Failed to switch role" });
   }
 });
 
-/* ===================== UPDATE REQUEST STATUS ===================== */
-app.put("/api/partners/update/:id", auth, async (req, res) => {
-  try {
-    const { status } = req.body; // "connected" / "rejected" / "pending"
-    const { id } = req.params;
-
-    const request = await PartnerRequest.findById(id);
-    if (!request) return res.status(404).json({ message: "Request not found" });
-
-    // Only receiver can accept/reject
-    if (request.receiverId.toString() !== req.user.id)
-      return res.status(403).json({ message: "Not authorized" });
-
-    request.status = status;
-    await request.save();
-
-    res.json({ success: true, message: "Status updated", request });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to update status" });
-  }
-});
-
-/* ===================== REMOVE / CANCEL PARTNER ===================== */
-app.delete("/api/partners/remove/:id", auth, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const request = await PartnerRequest.findById(id);
-    if (!request) return res.status(404).json({ message: "Request not found" });
-
-    // Only sender or receiver can remove
-    if (
-      request.receiverId.toString() !== req.user.id &&
-      request.sender.id.toString() !== req.user.id
-    )
-      return res.status(403).json({ message: "Not authorized" });
-
-    await PartnerRequest.findByIdAndDelete(id);
-    res.json({ success: true, message: "Partner removed" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to remove partner" });
-  }
-});
-
-
-/* ===================== STOCK API ===================== */
-app.get("/api/products", auth, async (req, res) => {
-  try {
-    const products = await Product.find({ owner: req.user.id }).sort({
-      createdAt: -1,
-    });
-    res.json(products);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to fetch products" });
-  }
-});
 
 /* ===================== SERVER ===================== */
 const PORT = process.env.PORT || 3000;

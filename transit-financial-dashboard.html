@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Transit & Financial Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+<style>
+  body { background: #f4f6f8; font-family: Arial, sans-serif; padding: 20px; }
+  .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+  .fade { animation: fade 0.3s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  table th, table td { text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2 class="text-2xl font-bold mb-4">Partner Product Dispatch</h2>
+  
+  <table class="table w-full">
+    <thead>
+      <tr>
+        <th>Partner Name</th>
+        <th>Partner Type</th>
+        <th>Mobile</th>
+        <th>Send Product</th>
+      </tr>
+    </thead>
+    <tbody id="partnerTable"></tbody>
+  </table>
+</div>
+
+<!-- Modal to send product -->
+<dialog id="sendProductModal" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-3">Send Product</h3>
+    <select class="select select-bordered w-full mb-2" id="selectProduct">
+      <option value="">Select Product</option>
+    </select>
+    <input type="number" class="input input-bordered w-full mb-2" placeholder="Quantity" id="productQuantity">
+    <div class="flex gap-3">
+      <label><input type="checkbox" id="markTransit"> Mark Transit</label>
+      <label><input type="checkbox" id="markReceived"> Mark Received</label>
+    </div>
+    <div class="modal-action mt-2">
+      <button class="btn btn-success" onclick="sendProduct()">Send</button>
+      <button class="btn" onclick="sendProductModal.close()">Cancel</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+const token = localStorage.getItem("token");
+if (!token) { alert("You are not logged in!"); window.location.href="login.html"; }
+
+let partners = [];
+let products = [];
+let selectedPartner = null;
+
+const partnerTable = document.getElementById("partnerTable");
+const sendProductModal = document.getElementById("sendProductModal");
+const selectProduct = document.getElementById("selectProduct");
+const productQuantity = document.getElementById("productQuantity");
+const markTransit = document.getElementById("markTransit");
+const markReceived = document.getElementById("markReceived");
+
+// Fetch partners and products
+async function initDashboard() {
+  await fetchPartners();
+  await fetchProducts();
+}
+
+// Fetch connected partners
+async function fetchPartners() {
+  const res = await fetch("/api/partners/list", { headers: { Authorization: `Bearer ${token}` }});
+  const data = await res.json();
+  partners = data.filter(p => p.status === "connected");
+  renderPartners();
+}
+
+// Fetch products owned by user
+async function fetchProducts() {
+  const res = await fetch("/api/products", { headers: { Authorization: `Bearer ${token}` }});
+  const data = await res.json();
+  products = data;
+  selectProduct.innerHTML = `<option value="">Select Product</option>` + 
+    data.map(p => `<option value="${p._id}">${p.productName} (Qty: ${p.quantity})</option>`).join('');
+}
+
+// Render partners table
+function renderPartners() {
+  partnerTable.innerHTML = "";
+  partners.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.classList.add("fade");
+    tr.innerHTML = `
+      <td>${p.name || "—"}</td>
+      <td>${capitalize(p.partnerType)}</td>
+      <td>${p.receiverMobile}</td>
+      <td><button class="btn btn-sm btn-primary" onclick="openSendProduct('${p.receiverMobile}')">Send</button></td>
+    `;
+    partnerTable.appendChild(tr);
+  });
+}
+
+// Open send product modal
+function openSendProduct(mobile) {
+  selectedPartner = mobile;
+  productQuantity.value = "";
+  selectProduct.value = "";
+  markTransit.checked = false;
+  markReceived.checked = false;
+  sendProductModal.showModal();
+}
+
+// Send product to partner
+async function sendProduct() {
+  const prodId = selectProduct.value;
+  const qty = Number(productQuantity.value);
+  if (!prodId || qty <= 0) return alert("Select product and valid quantity");
+
+  const product = products.find(p => p._id === prodId);
+  if (!product) return alert("Product not found");
+  if (product.quantity < qty) return alert("Insufficient quantity");
+
+  // Send to backend
+  try {
+    const res = await fetch("/api/transit/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        partnerMobile: selectedPartner,
+        productId: prodId,
+        quantity: qty,
+        transitStatus: markTransit.checked,
+        receivedStatus: markReceived.checked
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert("Product sent successfully!");
+      sendProductModal.close();
+      await fetchProducts();
+    } else {
+      alert(data.message);
+    }
+  } catch(err) {
+    console.error(err);
+    alert("Failed to send product");
+  }
+}
+
+function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+
+initDashboard();
+</script>
+
+</body>
+</html>

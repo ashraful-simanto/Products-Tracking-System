@@ -1,0 +1,150 @@
+<!-- Complaints Section -->
+<div class="complaint-card">
+  <h2>Submit a Complaint</h2>
+  
+  <div class="complaint-form">
+    <!-- Product Info -->
+    <div class="form-group">
+      <label>Product Name / ID</label>
+      <input type="text" id="complaint-product" placeholder="Enter product name or ID">
+    </div>
+
+    <div class="form-group">
+      <label>Issue Type</label>
+      <select id="complaint-type">
+        <option value="">Select issue type</option>
+        <option value="Fake Product">Fake Product</option>
+        <option value="Late Delivery">Late Delivery</option>
+        <option value="Damaged Item">Damaged Item</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="complaint-description" rows="4" placeholder="Explain your complaint..."></textarea>
+    </div>
+
+    <button onclick="submitComplaint()"><i class="fas fa-paper-plane"></i> Submit Complaint</button>
+  </div>
+</div>
+
+<style>
+/* Complaint Card */
+.complaint-card {
+  max-width: 500px;
+  margin: 2rem auto;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.complaint-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.complaint-card h2 {
+  font-size: 1.75rem;
+  color: #065f46; /* Emerald shade */
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* Form styling */
+.complaint-form .form-group {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.complaint-form label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #065f46;
+}
+
+.complaint-form input,
+.complaint-form select,
+.complaint-form textarea {
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #d1fae5; /* light emerald */
+  outline: none;
+  font-size: 0.95rem;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.complaint-form input:focus,
+.complaint-form select:focus,
+.complaint-form textarea:focus {
+  border-color: #10b981; /* emerald-500 */
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
+}
+
+/* Button styling */
+.complaint-form button {
+  width: 100%;
+  background: #10b981; /* emerald-500 */
+  color: #fff;
+  font-weight: 600;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.complaint-form button:hover {
+  background: #059669; /* darker emerald */
+  transform: translateY(-2px);
+}
+
+.complaint-form button i {
+  font-size: 1.1rem;
+}
+</style>
+
+<script>
+const token = localStorage.getItem("token");
+
+async function submitComplaint() {
+  const product = document.getElementById("complaint-product").value.trim();
+  const type = document.getElementById("complaint-type").value;
+  const description = document.getElementById("complaint-description").value.trim();
+
+  if (!product || !type || !description) {
+    Swal.fire("Incomplete ❌", "Please fill in all fields", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:3000/api/complaints", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ product, type, description }),
+    });
+
+    if (!res.ok) throw new Error("Failed to submit complaint");
+
+    Swal.fire("Submitted ✅", "Your complaint has been sent", "success");
+    document.getElementById("complaint-product").value = "";
+    document.getElementById("complaint-type").value = "";
+    document.getElementById("complaint-description").value = "";
+
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error ❌", "Could not submit complaint. Try again later.", "error");
+  }
+}
+</script>

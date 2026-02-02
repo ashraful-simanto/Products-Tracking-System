@@ -264,15 +264,18 @@
           <div id="customer-dashboard" class="fade-in">
             <h2 class="text-2xl font-bold mb-6">Customer Dashboard</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <button
+  class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+  onclick="window.open('https://online-barcode-reader.inliteresearch.com/', '_blank')"
+>
+  <i class="fas fa-qr-code text-4xl text-emerald-600"></i>
+  <span class="text-lg font-medium">QR Scan</span>
+  <span class="text-sm text-gray-600">Scan product QR codes</span>
+</button>
+
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
-              >
-                <i class="fas fa-qr-code text-4xl text-emerald-600"></i>
-                <span class="text-lg font-medium">QR Scan</span>
-                <span class="text-sm text-gray-600">Scan product QR codes</span>
-              </button>
-              <button
-                class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+                onclick="window.location.href='cart.html'"
               >
                 <i class="fas fa-shopping-cart text-4xl text-emerald-600"></i>
                 <span class="text-lg font-medium">Cart</span>
@@ -289,6 +292,7 @@
               </button>
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+                onclick="window.location.href='history-dashboard.html'"
               >
                 <i class="fas fa-history text-4xl text-emerald-600"></i>
                 <span class="text-lg font-medium">History</span>
@@ -296,6 +300,7 @@
               </button>
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+                onclick="window.location.href='complain.html'"
               >
                 <i
                   class="fas fa-exclamation-triangle text-4xl text-emerald-600"
@@ -319,6 +324,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+                onclick="window.location.href='stock.html'"
               >
                 <i class="fas fa-boxes text-4xl text-emerald-600"></i>
                 <span class="text-lg font-medium">Current Stock</span>
@@ -326,18 +332,21 @@
               </button>
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+                onclick="window.location.href='transit-financial-dashboard.html'"
               >
                 <i class="fas fa-truck-moving text-4xl text-emerald-600"></i>
                 <span class="text-lg font-medium">In Transit</span>
                 <span class="text-sm text-gray-600">Track shipments</span>
               </button>
-              <button
-                class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
-              >
-                <i class="fas fa-handshake text-4xl text-emerald-600"></i>
-                <span class="text-lg font-medium">Connected Suppliers</span>
-                <span class="text-sm text-gray-600">View suppliers</span>
-              </button>
+             <button
+  class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+  onclick="window.location.href='Partners.html'"
+>
+  <i class="fas fa-handshake text-4xl text-emerald-600"></i>
+  <span class="text-lg font-medium">Partners</span>
+  <span class="text-sm text-gray-600">View suppliers</span>
+</button>
+
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
               >
@@ -347,18 +356,13 @@
               </button>
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+                onclick="window.location.href='history-dashboard.html'"
               >
                 <i class="fas fa-history text-4xl text-emerald-600"></i>
                 <span class="text-lg font-medium">History</span>
                 <span class="text-sm text-gray-600">Transaction history</span>
               </button>
-              <button
-                class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
-              >
-                <i class="fas fa-chart-bar text-4xl text-emerald-600"></i>
-                <span class="text-lg font-medium">Analytics</span>
-                <span class="text-sm text-gray-600">Sales analytics</span>
-              </button>
+              
             </div>
           </div>
 
@@ -368,6 +372,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+                onclick="window.location.href='stock.html'"
               >
                 <i class="fas fa-warehouse text-4xl text-emerald-600"></i>
                 <span class="text-lg font-medium">Current Stock</span>
@@ -375,6 +380,7 @@
               </button>
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+                onclick="window.location.href='transit-financial-dashboard.html'"
               >
                 <i class="fas fa-exchange-alt text-4xl text-emerald-600"></i>
                 <span class="text-lg font-medium">In Transit</span>
@@ -382,34 +388,23 @@
               </button>
               <button
   class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
-  onclick="window.location.href='connectpartners.html'"
+  onclick="window.location.href='Partners.html'"
 >
   <i class="fas fa-industry text-4xl text-emerald-600"></i>
-  <span class="text-lg font-medium">Connected Producers</span>
+  <span class="text-lg font-medium">Partners</span>
   <span class="text-sm text-gray-600">Producer network</span>
 </button>
 
+              
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
-              >
-                <i class="fas fa-store-alt text-4xl text-emerald-600"></i>
-                <span class="text-lg font-medium">Shop Network</span>
-                <span class="text-sm text-gray-600">Connected shops</span>
-              </button>
-              <button
-                class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+                onclick="window.location.href='history-dashboard.html'"
               >
                 <i class="fas fa-history text-4xl text-emerald-600"></i>
                 <span class="text-lg font-medium">History</span>
                 <span class="text-sm text-gray-600">Distribution history</span>
               </button>
-              <button
-                class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
-              >
-                <i class="fas fa-route text-4xl text-emerald-600"></i>
-                <span class="text-lg font-medium">Routes</span>
-                <span class="text-sm text-gray-600">Delivery routes</span>
-              </button>
+              
             </div>
           </div>
 
@@ -428,6 +423,7 @@
 
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+                 onclick="window.location.href='transit-financial-dashboard.html'"
               >
                 <i class="fas fa-truck-ramp-box text-4xl text-emerald-600"></i>
                 <span class="text-lg font-medium">Outgoing Transit</span>
@@ -436,12 +432,14 @@
                 >
               </button>
               <button
-                class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
-              >
-                <i class="fas fa-network-wired text-4xl text-emerald-600"></i>
-                <span class="text-lg font-medium">Connected Distributors</span>
-                <span class="text-sm text-gray-600">Distribution network</span>
-              </button>
+  class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+  onclick="window.location.href='Partners.html'"
+>
+  <i class="fas fa-network-wired text-4xl text-emerald-600"></i>
+  <span class="text-lg font-medium">Partners</span>
+  <span class="text-sm text-gray-600">Distribution network</span>
+</button>
+
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
                 onclick="openQRGenerator()"
@@ -454,18 +452,13 @@
               </button>
               <button
                 class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
+                onclick="window.location.href='history-dashboard.html'"
               >
                 <i class="fas fa-history text-4xl text-emerald-600"></i>
                 <span class="text-lg font-medium">History</span>
                 <span class="text-sm text-gray-600">Production history</span>
               </button>
-              <button
-                class="btn btn-outline h-auto p-6 flex flex-col items-center justify-center gap-3"
-              >
-                <i class="fas fa-chart-pie text-4xl text-emerald-600"></i>
-                <span class="text-lg font-medium">Production Stats</span>
-                <span class="text-sm text-gray-600">Production analytics</span>
-              </button>
+             
             </div>
           </div>
 
